@@ -1,0 +1,80 @@
+<div class="login-page">
+  <div class="login-card">
+
+    <!-- Logo / Title -->
+    <div class="login-header">
+      <div class="login-logo">
+        <mat-icon>storefront</mat-icon>
+      </div>
+      <h1>ShopManager</h1>
+      <p>Sign in to your account</p>
+    </div>
+
+    <!-- Login Form -->
+    <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+
+      <!-- Username Field -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Username</mat-label>
+        <input
+          matInput
+          type="text"
+          name="username"
+          [(ngModel)]="username"
+          placeholder="Enter your username"
+          required />
+        <mat-icon matSuffix>person</mat-icon>
+      </mat-form-field>
+
+      <!-- Password Field -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Password</mat-label>
+        <input
+          matInput
+          type="password"
+          name="password"
+          [(ngModel)]="password"
+          placeholder="Enter your password"
+          required />
+        <mat-icon matSuffix>lock</mat-icon>
+      </mat-form-field>
+
+      <!-- Error Message -->
+      <div class="error-box" *ngIf="errorMessage">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <!-- Login Button -->
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+        class="login-btn"
+        [disabled]="isLoading">
+
+        <!-- Loading spinner -->
+        <mat-spinner
+          *ngIf="isLoading"
+          diameter="20"
+          class="btn-spinner">
+        </mat-spinner>
+
+        <!-- Button text -->
+        <span *ngIf="!isLoading">
+          <mat-icon>login</mat-icon> Sign In
+        </span>
+        <span *ngIf="isLoading">Signing in...</span>
+
+      </button>
+
+    </form>
+
+    <!-- Helper hint -->
+    <div class="login-hint">
+      <mat-icon>info_outline</mat-icon>
+      <span>Use: <strong>admin</strong> / <strong>admin123</strong></span>
+    </div>
+
+  </div>
+</div>

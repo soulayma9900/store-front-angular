@@ -1,0 +1,177 @@
+.page-container {
+  padding: 0;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.page-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1f2e;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+.subtitle {
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+/* ── Form Card ─────────────────────────────────────────────────────────── */
+.form-card {
+  border-radius: 16px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06) !important;
+  border: 1px solid #e2e8f0 !important;
+  margin-bottom: 28px;
+  background: #fff !important;
+}
+
+.form-card mat-card-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 100%) !important;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.form-card mat-card-title {
+  font-size: 1.15rem !important;
+  font-weight: 700 !important;
+  color: #1a1f2e;
+  letter-spacing: -0.3px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+  align-items: start;
+}
+
+/* Span notes + actions across all columns */
+.full-col {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-top: 4px;
+  flex-wrap: wrap;
+}
+
+/* ── Table Card ────────────────────────────────────────────────────────── */
+.table-card {
+  border-radius: 16px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06) !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #fff !important;
+}
+
+.full-width { width: 100%; }
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 64px 24px;
+  min-height: 300px;
+}
+
+/* ── Badges & chips ────────────────────────────────────────────────────── */
+.price-badge {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1d4ed8;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.category-chip {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  color: #16a34a;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.unit-chip {
+  background: linear-gradient(135deg, #faf5ff, #ede9fe);
+  color: #7c3aed;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.threshold-badge {
+  background: linear-gradient(135deg, #fff7ed, #ffedd5);
+  color: #c2410c;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.mono-text {
+  font-family: 'Courier New', monospace;
+  font-size: 0.82rem;
+  color: #475569;
+  letter-spacing: 0.5px;
+}
+
+/* ── Table rows ────────────────────────────────────────────────────────── */
+.table-row {
+  transition: background 0.2s ease;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+.table-row:hover {
+  background: linear-gradient(90deg, #f8fafc 0%, #f0f4f8 100%) !important;
+}
+
+/* ── Empty state ───────────────────────────────────────────────────────── */
+.empty-state {
+  text-align: center !important;
+  padding: 64px 24px !important;
+  color: #94a3b8;
+}
+.empty-state mat-icon {
+  font-size: 56px;
+  width: 56px;
+  height: 56px;
+  display: block;
+  margin: 0 auto 16px;
+  opacity: 0.6;
+}
+
+/* ── Header row ────────────────────────────────────────────────────────── */
+.mat-header-row {
+  background: linear-gradient(90deg, #f8fafc, #f0f4f8) !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+}
+.mat-header-cell {
+  font-weight: 700 !important;
+  color: #475569 !important;
+  font-size: 0.8rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .page-header h2 { font-size: 1.5rem; }
+  .form-grid { grid-template-columns: 1fr; }
+}

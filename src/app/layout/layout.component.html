@@ -1,0 +1,63 @@
+<mat-sidenav-container class="sidenav-container">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <mat-sidenav [opened]="isSidenavOpen" mode="side" class="sidenav">
+
+    <!-- Brand -->
+    <div class="sidenav-brand">
+      <mat-icon class="brand-icon">storefront</mat-icon>
+      <span class="brand-name">ShopManager</span>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <!-- Navigation -->
+    <mat-nav-list class="nav-list">
+      <a mat-list-item
+         *ngFor="let item of menuItems"
+         [routerLink]="item.route"
+         routerLinkActive="active-link"
+         [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+         class="nav-item">
+        <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+        <span matListItemTitle>{{ item.label }}</span>
+      </a>
+    </mat-nav-list>
+
+    <!-- Footer -->
+    <div class="sidenav-footer">
+      <mat-icon>info_outline</mat-icon>
+      <span>v1.0.0 — Angular 16</span>
+    </div>
+
+  </mat-sidenav>
+
+  <!-- ═══════════════ MAIN CONTENT ═══════════════ -->
+  <mat-sidenav-content class="main-content">
+
+    <!-- ⭐ Toolbar avec Logout -->
+    <mat-toolbar class="toolbar">
+      <button mat-icon-button (click)="toggleSidenav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span class="toolbar-title">ShopManager</span>
+      <span class="toolbar-spacer"></span>
+      <button mat-icon-button matTooltip="Notifications">
+        <mat-icon>notifications</mat-icon>
+      </button>
+      <!-- ⭐ Logout button -->
+      <button mat-icon-button
+              matTooltip="Logout"
+              (click)="logout()">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </mat-toolbar>
+
+    <!-- Pages -->
+    <div class="page-content">
+      <router-outlet></router-outlet>
+    </div>
+
+  </mat-sidenav-content>
+
+</mat-sidenav-container>

@@ -1,0 +1,215 @@
+<div class="page-container">
+
+  <!-- ═══════════════ HEADER ═══════════════ -->
+  <div class="page-header">
+    <div>
+      <h2>Products</h2>
+      <span class="subtitle">Manage your product catalog</span>
+    </div>
+    <button mat-raised-button color="primary" (click)="openCreate()">
+      <mat-icon>add</mat-icon> New Product
+    </button>
+  </div>
+
+  <!-- ═══════════════ FORM PANEL ═══════════════ -->
+  <mat-card class="form-card" *ngIf="showForm">
+    <mat-card-header>
+      <mat-card-title>
+        {{ editingId !== null ? 'Edit Product' : 'Create Product' }}
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+
+        <!-- Name -->
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" placeholder="Product name" />
+          <mat-error *ngIf="form.get('name')?.hasError('required')">Name is required</mat-error>
+          <mat-error *ngIf="form.get('name')?.hasError('minlength')">Min 2 characters</mat-error>
+        </mat-form-field>
+
+        <!-- Barcode -->
+        <mat-form-field appearance="outline">
+          <mat-label>Barcode</mat-label>
+          <input matInput formControlName="barcode" placeholder="e.g. 0123456789012" />
+          <mat-error *ngIf="form.get('barcode')?.hasError('required')">Barcode is required</mat-error>
+        </mat-form-field>
+
+        <!-- Category -->
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <mat-select formControlName="categoryId">
+            <mat-option *ngFor="let cat of categories" [value]="cat.id">
+              {{ cat.name }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.get('categoryId')?.hasError('required')">Category is required</mat-error>
+        </mat-form-field>
+
+        <!-- Primary Supplier -->
+        <mat-form-field appearance="outline">
+          <mat-label>Primary Supplier</mat-label>
+          <mat-select formControlName="primarySupplierId">
+            <mat-option *ngFor="let sup of suppliers" [value]="sup.id">
+              {{ sup.name }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.get('primarySupplierId')?.hasError('required')">Supplier is required</mat-error>
+        </mat-form-field>
+
+        <!-- Price -->
+        <mat-form-field appearance="outline">
+          <mat-label>Price ($)</mat-label>
+          <input matInput type="number" formControlName="price" />
+          <mat-error *ngIf="form.get('price')?.hasError('required')">Price is required</mat-error>
+          <mat-error *ngIf="form.get('price')?.hasError('min')">Must be positive</mat-error>
+        </mat-form-field>
+
+        <!-- Unit -->
+        <mat-form-field appearance="outline">
+          <mat-label>Unit</mat-label>
+          <mat-select formControlName="unit">
+            <mat-option *ngFor="let u of unitOptions" [value]="u">{{ u }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.get('unit')?.hasError('required')">Unit is required</mat-error>
+        </mat-form-field>
+
+        <!-- Low Stock Threshold -->
+        <mat-form-field appearance="outline">
+          <mat-label>Low Stock Threshold</mat-label>
+          <input matInput type="number" formControlName="lowStockThreshold" />
+          <mat-error *ngIf="form.get('lowStockThreshold')?.hasError('required')">Threshold is required</mat-error>
+          <mat-error *ngIf="form.get('lowStockThreshold')?.hasError('min')">Must be ≥ 0</mat-error>
+        </mat-form-field>
+
+        <!-- Image URL -->
+        <mat-form-field appearance="outline">
+          <mat-label>Image URL</mat-label>
+          <input matInput formControlName="imageUrl" placeholder="https://example.com/image.png" />
+        </mat-form-field>
+
+        <!-- Notes (full width) -->
+        <mat-form-field appearance="outline" class="full-col">
+          <mat-label>Notes</mat-label>
+          <textarea matInput formControlName="notes" rows="2" placeholder="Optional notes…"></textarea>
+        </mat-form-field>
+
+        <!-- Actions -->
+        <div class="form-actions full-col">
+          <button mat-stroked-button type="button" (click)="cancelForm()">
+            <mat-icon>close</mat-icon> Cancel
+          </button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+            <mat-icon>{{ editingId !== null ? 'save' : 'add' }}</mat-icon>
+            {{ editingId !== null ? 'Update' : 'Create' }}
+          </button>
+        </div>
+
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- ═══════════════ TABLE CARD ═══════════════ -->
+  <mat-card class="table-card">
+    <mat-card-content>
+
+      <!-- Spinner -->
+      <div *ngIf="loading" class="loading-center">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+
+      <!-- Table -->
+      <table mat-table
+             [dataSource]="products"
+             class="full-width mat-elevation-z0"
+             *ngIf="!loading">
+
+        <!-- ID -->
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef>ID</th>
+          <td mat-cell *matCellDef="let p">{{ p.id }}</td>
+        </ng-container>
+
+        <!-- Name -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let p"><strong>{{ p.name }}</strong></td>
+        </ng-container>
+
+        <!-- Barcode -->
+        <ng-container matColumnDef="barcode">
+          <th mat-header-cell *matHeaderCellDef>Barcode</th>
+          <td mat-cell *matCellDef="let p">
+            <span class="mono-text">{{ p.barcode }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Price -->
+        <ng-container matColumnDef="price">
+          <th mat-header-cell *matHeaderCellDef>Price</th>
+          <td mat-cell *matCellDef="let p">
+            <span class="price-badge">${{ p.price | number:'1.0-2' }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Unit -->
+        <ng-container matColumnDef="unit">
+          <th mat-header-cell *matHeaderCellDef>Unit</th>
+          <td mat-cell *matCellDef="let p">
+            <span class="unit-chip">{{ p.unit }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Category -->
+        <ng-container matColumnDef="categoryId">
+          <th mat-header-cell *matHeaderCellDef>Category</th>
+          <td mat-cell *matCellDef="let p">
+            <span class="category-chip">{{ getCategoryName(p.categoryId) }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Supplier -->
+        <ng-container matColumnDef="primarySupplierId">
+          <th mat-header-cell *matHeaderCellDef>Supplier</th>
+          <td mat-cell *matCellDef="let p">{{ getSupplierName(p.primarySupplierId) }}</td>
+        </ng-container>
+
+        <!-- Low Stock Threshold -->
+        <ng-container matColumnDef="lowStockThreshold">
+          <th mat-header-cell *matHeaderCellDef>Min Stock</th>
+          <td mat-cell *matCellDef="let p">
+            <span class="threshold-badge">{{ p.lowStockThreshold }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Actions -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let p">
+            <button mat-icon-button color="primary" (click)="openEdit(p)" matTooltip="Edit">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="delete(p.id)" matTooltip="Delete">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <!-- Header + Row -->
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+
+        <!-- Empty State -->
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell empty-state" colspan="9">
+            <mat-icon>inbox</mat-icon>
+            <span>No products found</span>
+          </td>
+        </tr>
+
+      </table>
+    </mat-card-content>
+  </mat-card>
+
+</div>
