@@ -1,63 +1,66 @@
 import {
-  Component, OnInit, AfterViewInit,
-  ElementRef, ViewChild, ChangeDetectorRef
+  Component,
+  OnInit,
+  AfterViewInit,
+  ElementRef,
+  ViewChild,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { forkJoin } from 'rxjs';
-import { ProductService }  from '../../services/product.service';
+import { ProductService } from '../../services/product.service';
 import { CategoryService } from '../../services/category.service';
-import { SaleService }     from '../../services/sale.service';
-import { Product }  from '../../models/product.model';
+import { SaleService } from '../../services/sale.service';
+import { Product } from '../../models/product.model';
 import { Category } from '../../models/category.model';
-import { Sale }     from '../../models/sale.model';
+import { Sale } from '../../models/sale.model';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
-  styleUrls:  ['./dashboard.component.css']
+  styleUrls: ['./dashboard.component.css'],
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
-
   @ViewChild('pieChart') pieChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('barChart') barChartRef!: ElementRef<HTMLCanvasElement>;
 
   // ─── Raw data ─────────────────────────────────────────────
-  products:   Product[]  = [];
+  products: Product[] = [];
   categories: Category[] = [];
-  sales:      Sale[]     = [];
+  sales: Sale[] = [];
 
   // ─── Stats ────────────────────────────────────────────────
-  totalProducts:   number = 0;
+  totalProducts: number = 0;
   totalCategories: number = 0;
-  totalSales:      number = 0;
-  totalRevenue:    number = 0;
-  avgPrice:        number = 0;
-  topProduct:      string = '—';
-  expensiveCount:  number = 0;
+  totalSales: number = 0;
+  totalRevenue: number = 0;
+  avgPrice: number = 0;
+  topProduct: string = '—';
+  expensiveCount: number = 0;
   largeSalesCount: number = 0;
 
   // ─── State ────────────────────────────────────────────────
   isLoading = true;
-  hasError  = false;
-  errorMsg  = '';
+  hasError = false;
+  errorMsg = '';
 
   // ─── Charts ───────────────────────────────────────────────
   private pieChart?: Chart;
   private barChart?: Chart;
   private pieLabels: string[] = [];
-  private pieData:   number[] = [];
+  private pieData: number[] = [];
   private barLabels: string[] = [];
-  private barData:   number[] = [];
+  private barData: number[] = [];
   private viewReady = false;
   private dataReady = false;
 
   constructor(
-    private productService:  ProductService,
+    private productService: ProductService,
     private categoryService: CategoryService,
-    private saleService:     SaleService,
-    private cdr:             ChangeDetectorRef
+    private saleService: SaleService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -89,39 +92,39 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   // ═══════════════════════════════════════════════════════════
   loadAllData(): void {
     this.isLoading = true;
-    this.hasError  = false;
+    this.hasError = false;
 
     forkJoin({
-      products:   this.productService.getProducts(),
+      products: this.productService.getProducts(),
       categories: this.categoryService.getCategories(),
-      sales:      this.saleService.getSales()
+      sales: this.saleService.getSales(),
     }).subscribe({
-
       next: (result: any) => {
-
         // extract arrays safely
-        const products:   Product[]  = this.extractArray<Product>(result.products);
-        const categories: Category[] = this.extractArray<Category>(result.categories);
-        const sales:      Sale[]     = this.extractArray<Sale>(result.sales);
+        const products: Product[] = this.extractArray<Product>(result.products);
+        const categories: Category[] = this.extractArray<Category>(
+          result.categories,
+        );
+        const sales: Sale[] = this.extractArray<Sale>(result.sales);
 
-        this.products   = products;
+        this.products = products;
         this.categories = categories;
-        this.sales      = sales;
+        this.sales = sales;
 
         // ─── map() ────────────────────────────────────────
-        const productNames  = products.map((p: Product) => p.name);
+        const productNames = products.map((p: Product) => p.name);
         const productPrices = products.map((p: Product) => p.price);
-        const saleTotals    = sales.map((s: Sale) => s.total);
+        const saleTotals = sales.map((s: Sale) => s.total);
 
         console.log('names  (map):', productNames);
         console.log('prices (map):', productPrices);
         console.log('totals (map):', saleTotals);
 
         // ─── filter() ─────────────────────────────────────
-        const expensive  = products.filter((p: Product) => p.price > 500);
+        const expensive = products.filter((p: Product) => p.price > 500);
         const largeSales = sales.filter((s: Sale) => s.total > 1000);
 
-        this.expensiveCount  = expensive.length;
+        this.expensiveCount = expensive.length;
         this.largeSalesCount = largeSales.length;
 
         console.log('filter price>500 :', this.expensiveCount);
@@ -129,27 +132,29 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
         // ─── reduce() ─────────────────────────────────────
         this.totalRevenue = sales.reduce(
-          (acc: number, s: Sale) => acc + s.total, 0
+          (acc: number, s: Sale) => acc + s.total,
+          0,
         );
 
         const totalValue = productPrices.reduce(
-          (acc: number, price: number) => acc + price, 0
+          (acc: number, price: number) => acc + price,
+          0,
         );
 
         console.log('revenue (reduce):', this.totalRevenue);
         console.log('value   (reduce):', totalValue);
 
         // ─── stats ────────────────────────────────────────
-        this.totalProducts   = products.length;
+        this.totalProducts = products.length;
         this.totalCategories = categories.length;
-        this.totalSales      = sales.length;
-        this.avgPrice = products.length > 0
-          ? Math.round(totalValue / products.length) : 0;
+        this.totalSales = sales.length;
+        this.avgPrice =
+          products.length > 0 ? Math.round(totalValue / products.length) : 0;
 
         // ─── top product ──────────────────────────────────
         if (products.length > 0) {
           const sorted = [...products].sort(
-            (a: Product, b: Product) => b.price - a.price
+            (a: Product, b: Product) => b.price - a.price,
           );
           this.topProduct = sorted[0].name;
         }
@@ -169,32 +174,34 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
       error: (err: any) => {
         this.isLoading = false;
-        this.hasError  = true;
-        this.errorMsg  = err.status === 0
-          ? 'Backend offline — start NestJS on port 3000.'
-          : `Error ${err.status}: ${err.message}`;
+        this.hasError = true;
+        this.errorMsg =
+          err.status === 0
+            ? 'Backend offline — start NestJS on port 3000.'
+            : `Error ${err.status}: ${err.message}`;
         console.error('Dashboard error:', err);
-      }
+      },
     });
   }
 
   // ─── PIE: products per category ───────────────────────────
   private buildPieData(): void {
     this.pieLabels = this.categories.map((c: Category) => c.name);
-    this.pieData   = this.categories.map((c: Category) =>
-      this.products.filter(
-        (p: Product) => Number(p.categoryId) === Number(c.id)
-      ).length
+    this.pieData = this.categories.map(
+      (c: Category) =>
+        this.products.filter(
+          (p: Product) => Number(p.categoryId) === Number(c.id),
+        ).length,
     );
   }
 
   // ─── BAR: sales per product ───────────────────────────────
   private buildBarData(): void {
     this.barLabels = this.products.map((p: Product) => p.name);
-    this.barData   = this.products.map((p: Product) =>
+    this.barData = this.products.map((p: Product) =>
       this.sales
         .filter((s: Sale) => Number(s.productId) === Number(p.id))
-        .reduce((acc: number, s: Sale) => acc + s.total, 0)
+        .reduce((acc: number, s: Sale) => acc + s.total, 0),
     );
   }
 
@@ -213,16 +220,23 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       type: 'pie',
       data: {
         labels: this.pieLabels.length ? this.pieLabels : ['No data'],
-        datasets: [{
-          data: this.pieData.length ? this.pieData : [1],
-          backgroundColor: [
-            '#4f8ef7','#22c55e','#f97316',
-            '#a855f7','#ef4444','#06b6d4',
-            '#eab308','#ec4899'
-          ],
-          borderColor: '#ffffff',
-          borderWidth: 3
-        }]
+        datasets: [
+          {
+            data: this.pieData.length ? this.pieData : [1],
+            backgroundColor: [
+              '#4f8ef7',
+              '#22c55e',
+              '#f97316',
+              '#a855f7',
+              '#ef4444',
+              '#06b6d4',
+              '#eab308',
+              '#ec4899',
+            ],
+            borderColor: '#ffffff',
+            borderWidth: 3,
+          },
+        ],
       },
       options: {
         responsive: true,
@@ -230,10 +244,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         plugins: {
           legend: {
             position: 'bottom',
-            labels: { font: { size: 12 }, padding: 16, color: '#374151' }
-          }
-        }
-      }
+            labels: { font: { size: 12 }, padding: 16, color: '#374151' },
+          },
+        },
+      },
     });
   }
 
@@ -246,15 +260,17 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       type: 'bar',
       data: {
         labels: this.barLabels.length ? this.barLabels : ['No data'],
-        datasets: [{
-          label: 'Total Sales ($)',
-          data:  this.barData.length ? this.barData : [0],
-          backgroundColor: 'rgba(79,142,247,0.85)',
-          borderColor:     '#3b6fd4',
-          borderWidth:     2,
-          borderRadius:    8,
-          borderSkipped:   false
-        }]
+        datasets: [
+          {
+            label: 'Total Sales ($)',
+            data: this.barData.length ? this.barData : [0],
+            backgroundColor: 'rgba(79,142,247,0.85)',
+            borderColor: '#3b6fd4',
+            borderWidth: 2,
+            borderRadius: 8,
+            borderSkipped: false,
+          },
+        ],
       },
       options: {
         responsive: true,
@@ -262,32 +278,32 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         plugins: { legend: { display: false } },
         scales: {
           x: {
-            grid:  { display: false },
-            ticks: { maxRotation: 45, color: '#374151' }
+            grid: { display: false },
+            ticks: { maxRotation: 45, color: '#374151' },
           },
           y: {
             beginAtZero: true,
             ticks: {
               color: '#374151',
-              callback: (value) => '$' + value
-            }
-          }
-        }
-      }
+              callback: (value: any) => '$' + value,
+            },
+          },
+        },
+      },
     });
   }
 
   // ─── HELPERS ──────────────────────────────────────────────
   getCategoryName(categoryId: number): string {
     const found = this.categories.find(
-      (c: Category) => Number(c.id) === Number(categoryId)
+      (c: Category) => Number(c.id) === Number(categoryId),
     );
     return found ? found.name : '—';
   }
 
   getProductName(productId: number): string {
     const found = this.products.find(
-      (p: Product) => Number(p.id) === Number(productId)
+      (p: Product) => Number(p.id) === Number(productId),
     );
     return found ? found.name : '—';
   }

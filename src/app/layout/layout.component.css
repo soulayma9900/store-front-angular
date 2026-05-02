@@ -1,6 +1,6 @@
 /* Container */
 .sidenav-container {
-  height: 100vh;
+  min-height: 100vh;
   width: 100%;
   display: flex;
 }
@@ -12,8 +12,8 @@
   color: #fff;
   display: flex;
   flex-direction: column;
-  box-shadow: 8px 0 24px rgba(0,0,0,0.3);
-  border-right: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 4px 0 18px rgba(0, 0, 0, 0.18);
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 /* Brand */
@@ -22,7 +22,7 @@
   align-items: center;
   gap: 14px;
   padding: 28px 24px 24px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .brand-icon {
   font-size: 36px;
@@ -41,8 +41,8 @@
 }
 
 /* Nav */
-.nav-list { 
-  flex: 1; 
+.nav-list {
+  flex: 1;
   padding: 16px 8px;
   overflow-y: auto;
 }
@@ -63,7 +63,9 @@
 .active-link {
   background: linear-gradient(135deg, #4f8ef7, #3b6fd4) !important;
   color: #fff !important;
-  box-shadow: 0 4px 16px rgba(79, 142, 247, 0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+  box-shadow:
+    0 4px 16px rgba(79, 142, 247, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   font-weight: 600;
 }
 
@@ -75,20 +77,24 @@
   padding: 18px 24px;
   color: #64748b;
   font-size: 0.8rem;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  background: rgba(0,0,0,0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 /* Toolbar */
 .toolbar {
-  background: linear-gradient(90deg, #4f8ef7 0%, #3b6fd4 100%) !important;
-  box-shadow: 0 4px 20px rgba(79, 142, 247, 0.35);
+  background: linear-gradient(
+    90deg,
+    var(--brand-500) 0%,
+    var(--brand-600) 100%
+  ) !important;
+  box-shadow: 0 6px 20px rgba(59, 111, 212, 0.12);
   position: sticky;
   top: 0;
   z-index: 100;
   color: #fff !important;
-  padding: 0 32px;
-  min-height: 72px;
+  padding: 0 24px;
+  min-height: 64px;
 }
 .toolbar-title {
   font-size: 1.15rem;
@@ -96,15 +102,16 @@
   margin-left: 8px;
   letter-spacing: -0.3px;
 }
-.toolbar-spacer { flex: 1; }
+.toolbar-spacer {
+  flex: 1;
+}
 
 /* Content */
 .main-content {
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 100%);
+  background: linear-gradient(135deg, var(--bg-100) 0%, var(--bg-200) 100%);
   display: flex;
   flex-direction: column;
   flex: 1;
-  overflow: hidden;
 }
 .page-content {
   flex: 1;

@@ -14,7 +14,7 @@
 .page-header h2 {
   font-size: 2rem;
   font-weight: 700;
-  color: #1a1f2e;
+  color: var(--text);
   margin: 0;
   letter-spacing: -0.5px;
 }
@@ -27,22 +27,26 @@
 
 /* Form Card */
 .form-card {
-  border-radius: 16px !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06) !important;
-  border: 1px solid #e2e8f0 !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-1) !important;
+  border: 1px solid rgba(2, 6, 23, 0.04) !important;
   margin-bottom: 28px;
-  background: #fff !important;
+  background: var(--surface) !important;
 }
 
 .form-card mat-card-header {
-  background: linear-gradient(135deg, #f8fafc 0%, #f0f4f8 100%) !important;
-  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(
+    135deg,
+    var(--bg-100) 0%,
+    var(--bg-200) 100%
+  ) !important;
+  border-bottom: 1px solid rgba(2, 6, 23, 0.04);
 }
 
 .form-card mat-card-title {
   font-size: 1.15rem !important;
   font-weight: 700 !important;
-  color: #1a1f2e;
+  color: var(--text);
   letter-spacing: -0.3px;
 }
 
@@ -68,13 +72,15 @@
 
 /* Table Card */
 .table-card {
-  border-radius: 16px !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06) !important;
-  border: 1px solid #e2e8f0 !important;
-  background: #fff !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-1) !important;
+  border: 1px solid rgba(2, 6, 23, 0.04) !important;
+  background: var(--surface) !important;
 }
 
-.full-width { width: 100%; }
+.full-width {
+  width: 100%;
+}
 
 .loading-center {
   display: flex;
@@ -86,7 +92,7 @@
 
 /* Badges */
 .id-badge {
-  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+  background: linear-gradient(135deg, var(--bg-100), var(--bg-200));
   color: #475569;
   padding: 6px 14px;
   border-radius: 20px;
@@ -113,10 +119,14 @@
 /* Table rows */
 .table-row {
   transition: background 0.2s ease;
-  border-bottom: 1px solid #e2e8f0 !important;
+  border-bottom: 1px solid rgba(2, 6, 23, 0.04) !important;
 }
-.table-row:hover { 
-  background: linear-gradient(90deg, #f8fafc 0%, #f0f4f8 100%) !important;
+.table-row:hover {
+  background: linear-gradient(
+    90deg,
+    var(--bg-100) 0%,
+    var(--bg-200) 100%
+  ) !important;
 }
 
 /* Empty state */
@@ -135,9 +145,10 @@
 }
 
 /* Header row */
+/* Header row */
 .mat-header-row {
-  background: linear-gradient(90deg, #f8fafc, #f0f4f8) !important;
-  border-bottom: 2px solid #e2e8f0 !important;
+  background: linear-gradient(90deg, var(--bg-100), var(--bg-200)) !important;
+  border-bottom: 2px solid rgba(2, 6, 23, 0.04) !important;
 }
 .mat-header-cell {
   font-weight: 700 !important;
@@ -156,10 +167,6 @@
   .page-header h2 {
     font-size: 1.5rem;
   }
-}
-  height: 48px;
-  display: block;
-  margin: 0 auto 12px;
 }
 
 /* Header cells */

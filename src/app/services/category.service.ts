@@ -6,9 +6,6 @@ import { Category } from '../models/category.model';
 
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
-  static getCategories(): Category[] {
-    throw new Error('Method not implemented.');
-  }
   private readonly apiUrl = `${environment.apiUrl}/categories`;
   constructor(private http: HttpClient) {}
 

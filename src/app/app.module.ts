@@ -16,6 +16,7 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { ProductsComponent } from './pages/products/products.component';
 import { CategoriesComponent } from './pages/categories/categories.component';
 import { SalesComponent } from './pages/sales/sales.component';
+import { SuppliersComponent } from './pages/suppliers/suppliers.component';
 
 // Angular Material
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -45,6 +46,7 @@ import { LoginComponent } from './auth/login/login.component';
     ProductsComponent,
     CategoriesComponent,
     SalesComponent,
+    SuppliersComponent,
     LoginComponent
   ],
   imports: [
