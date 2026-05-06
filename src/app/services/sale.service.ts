@@ -13,69 +13,54 @@ export class SaleService {
 
   constructor(private http: HttpClient) {}
 
-  // 🟢 GET SALES (pagination backend)
-  getSales(page: number = 0, size: number = 20, productId?: string):
-    Observable<{ content: Sale[]; totalElements: number }> {
-
-    let params = new HttpParams()
+  getSales(page: number = 0, size: number = 20): Observable<{ content: Sale[]; totalElements: number }> {
+    const params = new HttpParams()
       .set('page', page)
       .set('size', size);
 
-    if (productId) {
-      params = params.set('productId', productId);
-    }
-
     return this.http.get<any>(this.apiUrl, { params }).pipe(
       map(res => ({
-        content: res.content,
-        totalElements: res.totalElements
+        content:       res.content       ?? [],
+        totalElements: res.totalElements ?? 0
       })),
       catchError(this.handleError)
     );
   }
 
-  // 🟢 CREATE SALE (OK backend)
-  createSale(sale: any): Observable<Sale> {
+  createSale(sale: {
+    productId: string;
+    quantity:  number;
+    unitPrice: number;
+    saleDate:  string;
+    note?:     string | null;
+  }): Observable<Sale> {
     return this.http.post<Sale>(this.apiUrl, sale).pipe(
       catchError(this.handleError)
     );
   }
 
-  // ❌ SUPPRIMÉ car backend ne supporte pas :
-  // getSale, updateSale, deleteSale
-
-  // 🟡 CALCULS (option front only)
-  getTotalRevenue(): Observable<number> {
-    return this.http.get<any>(this.apiUrl).pipe(
-      map(res => {
-        const sales: Sale[] = res.content || [];
-        return sales.reduce((acc, s) => acc + (s.total ?? 0), 0);
-      }),
-      catchError(this.handleError)
-    );
-  }
-
-  getTopSales(minTotal: number): Observable<Sale[]> {
-    return this.http.get<any>(this.apiUrl).pipe(
-      map(res => {
-        const sales: Sale[] = res.content || [];
-        return sales
-          .filter(s => s.total > minTotal)
-          .sort((a, b) => b.total - a.total);
-      }),
-      catchError(this.handleError)
-    );
-  }
-
-  // 🔴 ERROR HANDLING
+  // ─── ERROR HANDLER ✅ affiche le vrai message NestJS ──────
   private handleError(error: HttpErrorResponse) {
+    console.error('Backend error:', error.error); // log complet
+
     let message = 'Unknown error';
 
-    if (error.status === 0) message = 'Network error';
-    else if (error.status === 401) message = 'Unauthorized (check token)';
-    else if (error.status === 404) message = 'Not found';
-    else if (error.status === 500) message = 'Server error';
-    else message = `Error ${error.status}`;
+    if (error.status === 0) {
+      message = 'Network error — backend offline?';
+    } else if (error.status === 400) {
+      const backendMsg = error.error?.message;
+      message = Array.isArray(backendMsg)
+        ? backendMsg.join(', ')
+        : backendMsg ?? 'Bad Request';
+    } else if (error.status === 401) {
+      message = 'Unauthorized — check your token';
+    } else if (error.status === 404) {
+      message = 'Not found';
+    } else if (error.status === 500) {
+      message = 'Server error';
+    } else {
+      message = `Error ${error.status}`;
+    }
 
     return throwError(() => new Error(message));
   }

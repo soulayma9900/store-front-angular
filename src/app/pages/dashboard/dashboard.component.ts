@@ -1,3 +1,5 @@
+// src/app/components/dashboard/dashboard.component.ts
+
 import {
   Component,
   OnInit,
@@ -26,12 +28,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   @ViewChild('pieChart') pieChartRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('barChart') barChartRef!: ElementRef<HTMLCanvasElement>;
 
-  // ─── Raw data ─────────────────────────────────────────────
   products: Product[] = [];
   categories: Category[] = [];
   sales: Sale[] = [];
 
-  // ─── Stats ────────────────────────────────────────────────
   totalProducts: number = 0;
   totalCategories: number = 0;
   totalSales: number = 0;
@@ -41,12 +41,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   expensiveCount: number = 0;
   largeSalesCount: number = 0;
 
-  // ─── State ────────────────────────────────────────────────
   isLoading = true;
   hasError = false;
   errorMsg = '';
 
-  // ─── Charts ───────────────────────────────────────────────
   private pieChart?: Chart;
   private barChart?: Chart;
   private pieLabels: string[] = [];
@@ -74,9 +72,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // EXTRACT — handles both paginated and plain array responses
-  // ═══════════════════════════════════════════════════════════
   private extractArray<T>(response: any): T[] {
     if (response && response.content && Array.isArray(response.content)) {
       return response.content as T[];
@@ -87,9 +82,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     return [];
   }
 
-  // ═══════════════════════════════════════════════════════════
-  // LOAD ALL DATA
-  // ═══════════════════════════════════════════════════════════
+  // ✅ Calcule le total d'une vente (unitPrice × quantity si total absent)
+  private getSaleTotal(s: Sale): number {
+    if (s.total && s.total > 0) return s.total;
+    return Number(s.unitPrice ?? 0) * Number(s.quantity ?? 0);
+  }
+
   loadAllData(): void {
     this.isLoading = true;
     this.hasError = false;
@@ -100,71 +98,64 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       sales: this.saleService.getSales(),
     }).subscribe({
       next: (result: any) => {
-        // extract arrays safely
         const products: Product[] = this.extractArray<Product>(result.products);
-        const categories: Category[] = this.extractArray<Category>(
-          result.categories,
-        );
-        const sales: Sale[] = this.extractArray<Sale>(result.sales);
+        const categories: Category[] = this.extractArray<Category>(result.categories);
 
-        this.products = products;
+        // ✅ FIX — recalcule total pour chaque sale car backend stocke unitPrice × quantity
+        const sales: Sale[] = this.extractArray<Sale>(result.sales).map(s => ({
+          ...s,
+          total: s.total && s.total > 0
+            ? s.total
+            : Number(s.unitPrice ?? 0) * Number(s.quantity ?? 0)
+        }));
+
+        this.products   = products;
         this.categories = categories;
-        this.sales = sales;
+        this.sales      = sales;
+
+        // ─── Debug ────────────────────────────────────────
+        console.log('products:', products);
+        console.log('categories:', categories);
+        console.log('sales:', sales);
+        console.log('sales[0] total:', sales[0]?.total);
+        console.log('sales[0] unitPrice:', sales[0]?.unitPrice);
+        console.log('sales[0] quantity:', sales[0]?.quantity);
 
         // ─── map() ────────────────────────────────────────
-        const productNames = products.map((p: Product) => p.name);
         const productPrices = products.map((p: Product) => p.price);
-        const saleTotals = sales.map((s: Sale) => s.total);
-
-        console.log('names  (map):', productNames);
-        console.log('prices (map):', productPrices);
-        console.log('totals (map):', saleTotals);
 
         // ─── filter() ─────────────────────────────────────
-        const expensive = products.filter((p: Product) => p.price > 500);
-        const largeSales = sales.filter((s: Sale) => s.total > 1000);
-
-        this.expensiveCount = expensive.length;
-        this.largeSalesCount = largeSales.length;
-
-        console.log('filter price>500 :', this.expensiveCount);
-        console.log('filter total>1000:', this.largeSalesCount);
+        this.expensiveCount  = products.filter((p: Product) => p.price > 500).length;
+        this.largeSalesCount = sales.filter((s: Sale) => s.total > 1000).length;
 
         // ─── reduce() ─────────────────────────────────────
+        // ✅ FIX — utilise getSaleTotal pour être sûr
         this.totalRevenue = sales.reduce(
-          (acc: number, s: Sale) => acc + s.total,
-          0,
+          (acc: number, s: Sale) => acc + this.getSaleTotal(s), 0
         );
-
         const totalValue = productPrices.reduce(
-          (acc: number, price: number) => acc + price,
-          0,
+          (acc: number, price: number) => acc + price, 0
         );
-
-        console.log('revenue (reduce):', this.totalRevenue);
-        console.log('value   (reduce):', totalValue);
 
         // ─── stats ────────────────────────────────────────
-        this.totalProducts = products.length;
-        this.totalCategories = categories.length;
-        this.totalSales = sales.length;
-        this.avgPrice =
-          products.length > 0 ? Math.round(totalValue / products.length) : 0;
+        this.totalProducts    = products.length;
+        this.totalCategories  = categories.length;
+        this.totalSales       = sales.length;
+        this.avgPrice         = products.length > 0
+          ? Math.round(totalValue / products.length)
+          : 0;
 
-        // ─── top product ──────────────────────────────────
         if (products.length > 0) {
-          const sorted = [...products].sort(
-            (a: Product, b: Product) => b.price - a.price,
-          );
-          this.topProduct = sorted[0].name;
+          const sorted     = [...products].sort((a, b) => b.price - a.price);
+          this.topProduct  = sorted[0].name;
         }
 
-        // ─── charts ───────────────────────────────────────
+        // ─── BUILD CHARTS ─────────────────────────────────
         this.buildPieData();
         this.buildBarData();
 
-        this.isLoading = false;
-        this.dataReady = true;
+        this.isLoading  = false;
+        this.dataReady  = true;
         this.cdr.detectChanges();
 
         if (this.viewReady) {
@@ -173,12 +164,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       },
 
       error: (err: any) => {
-        this.isLoading = false;
-        this.hasError = true;
-        this.errorMsg =
-          err.status === 0
-            ? 'Backend offline — start NestJS on port 3000.'
-            : `Error ${err.status}: ${err.message}`;
+        this.isLoading  = false;
+        this.hasError   = true;
+        this.errorMsg   = err.status === 0
+          ? 'Backend offline — démarrer NestJS sur le port 8080.'
+          : `Erreur ${err.status}: ${err.message}`;
         console.error('Dashboard error:', err);
       },
     });
@@ -186,23 +176,52 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   // ─── PIE: products per category ───────────────────────────
   private buildPieData(): void {
-    this.pieLabels = this.categories.map((c: Category) => c.name);
-    this.pieData = this.categories.map(
-      (c: Category) =>
-        this.products.filter(
-          (p: Product) => Number(p.categoryId) === Number(c.id),
-        ).length,
+    console.log('Sample product categoryId:', this.products[0]?.categoryId);
+    console.log('Sample category id:', this.categories[0]?.id);
+
+    // ✅ Filtre les catégories qui ont au moins 1 produit
+    const categoriesWithProducts = this.categories.filter(c =>
+      this.products.some(p =>
+        String(p.categoryId).trim().toLowerCase() ===
+        String(c.id).trim().toLowerCase()
+      )
     );
+
+    this.pieLabels = categoriesWithProducts.map((c: Category) => c.name);
+    this.pieData   = categoriesWithProducts.map((c: Category) =>
+      this.products.filter(
+        (p: Product) =>
+          String(p.categoryId).trim().toLowerCase() ===
+          String(c.id).trim().toLowerCase()
+      ).length
+    );
+
+    console.log('pieLabels:', this.pieLabels);
+    console.log('pieData:', this.pieData);
   }
 
   // ─── BAR: sales per product ───────────────────────────────
   private buildBarData(): void {
-    this.barLabels = this.products.map((p: Product) => p.name);
-    this.barData = this.products.map((p: Product) =>
-      this.sales
-        .filter((s: Sale) => Number(s.productId) === Number(p.id))
-        .reduce((acc: number, s: Sale) => acc + s.total, 0),
+    // ✅ Filtre les produits qui ont au moins 1 vente
+    const productsWithSales = this.products.filter(p =>
+      this.sales.some(s =>
+        String(s.productId).trim().toLowerCase() ===
+        String(p.id).trim().toLowerCase()
+      )
     );
+
+    this.barLabels = productsWithSales.map((p: Product) => p.name);
+    this.barData   = productsWithSales.map((p: Product) =>
+      this.sales
+        .filter((s: Sale) =>
+          String(s.productId).trim().toLowerCase() ===
+          String(p.id).trim().toLowerCase()
+        )
+        .reduce((acc: number, s: Sale) => acc + this.getSaleTotal(s), 0)
+    );
+
+    console.log('barLabels:', this.barLabels);
+    console.log('barData:', this.barData); // ← doit afficher [4800, 11250, 450] etc
   }
 
   // ─── RENDER ───────────────────────────────────────────────
@@ -220,23 +239,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       type: 'pie',
       data: {
         labels: this.pieLabels.length ? this.pieLabels : ['No data'],
-        datasets: [
-          {
-            data: this.pieData.length ? this.pieData : [1],
-            backgroundColor: [
-              '#4f8ef7',
-              '#22c55e',
-              '#f97316',
-              '#a855f7',
-              '#ef4444',
-              '#06b6d4',
-              '#eab308',
-              '#ec4899',
-            ],
-            borderColor: '#ffffff',
-            borderWidth: 3,
-          },
-        ],
+        datasets: [{
+          data: this.pieData.length ? this.pieData : [1],
+          backgroundColor: [
+            '#4f8ef7', '#22c55e', '#f97316',
+            '#a855f7', '#ef4444', '#06b6d4',
+            '#eab308', '#ec4899',
+          ],
+          borderColor: '#ffffff',
+          borderWidth: 3,
+        }],
       },
       options: {
         responsive: true,
@@ -260,17 +272,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       type: 'bar',
       data: {
         labels: this.barLabels.length ? this.barLabels : ['No data'],
-        datasets: [
-          {
-            label: 'Total Sales ($)',
-            data: this.barData.length ? this.barData : [0],
-            backgroundColor: 'rgba(79,142,247,0.85)',
-            borderColor: '#3b6fd4',
-            borderWidth: 2,
-            borderRadius: 8,
-            borderSkipped: false,
-          },
-        ],
+        datasets: [{
+          label: 'Total Sales ($)',
+          data: this.barData.length ? this.barData : [0],
+          backgroundColor: 'rgba(79,142,247,0.85)',
+          borderColor: '#3b6fd4',
+          borderWidth: 2,
+          borderRadius: 8,
+          borderSkipped: false,
+        }],
       },
       options: {
         responsive: true,
@@ -294,16 +304,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   // ─── HELPERS ──────────────────────────────────────────────
-  getCategoryName(categoryId: number): string {
+  getCategoryName(categoryId: string): string {
     const found = this.categories.find(
-      (c: Category) => Number(c.id) === Number(categoryId),
+      (c: Category) => String(c.id).toLowerCase() === String(categoryId).toLowerCase()
     );
     return found ? found.name : '—';
   }
 
-  getProductName(productId: number): string {
+  getProductName(productId: string): string {
     const found = this.products.find(
-      (p: Product) => Number(p.id) === Number(productId),
+      (p: Product) => String(p.id).toLowerCase() === String(productId).toLowerCase()
     );
     return found ? found.name : '—';
   }
