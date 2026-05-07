@@ -5,7 +5,7 @@
     <p style="margin:4px 0 0; color:#6b7280; font-size:0.9rem">Manage your suppliers</p>
   </div>
   <button mat-stroked-button (click)="openCreate()"
-          style="border-radius:8px; padding:8px 20px; font-weight:500; border:1.5px solid #333; color:#1a1a2e">
+    style="border-radius:8px; padding:8px 20px; font-weight:500; border:1.5px solid #333; color:#1a1a2e">
     <mat-icon style="font-size:18px; vertical-align:middle; margin-right:4px">add</mat-icon>
     New Supplier
   </button>
@@ -65,16 +65,17 @@
     </div>
 
     <table mat-table [dataSource]="pagedSuppliers" class="full-width mat-elevation-z0" *ngIf="!loading"
-           style="border-radius:12px; overflow:hidden">
+      style="border-radius:12px; overflow:hidden">
 
       <!-- ID -->
       <ng-container matColumnDef="id">
         <th mat-header-cell *matHeaderCellDef
-            style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
+          style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
           ID
         </th>
         <td mat-cell *matCellDef="let s" style="padding:14px 16px">
-          <span style="background:#e2e8f0; color:#475569; font-size:0.75rem; padding:3px 8px; border-radius:6px; font-family:monospace">
+          <span
+            style="background:#e2e8f0; color:#475569; font-size:0.75rem; padding:3px 8px; border-radius:6px; font-family:monospace">
             {{ s.id }}
           </span>
         </td>
@@ -83,7 +84,7 @@
       <!-- NAME -->
       <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef
-            style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
+          style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
           NAME
         </th>
         <td mat-cell *matCellDef="let s" style="padding:14px 16px">
@@ -94,7 +95,7 @@
       <!-- PHONE -->
       <ng-container matColumnDef="phone">
         <th mat-header-cell *matHeaderCellDef
-            style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
+          style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
           PHONE
         </th>
         <td mat-cell *matCellDef="let s" style="padding:14px 16px">{{ s.phone }}</td>
@@ -103,7 +104,7 @@
       <!-- ADDRESS -->
       <ng-container matColumnDef="address">
         <th mat-header-cell *matHeaderCellDef
-            style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
+          style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
           ADDRESS
         </th>
         <td mat-cell *matCellDef="let s" style="padding:14px 16px">{{ s.address }}</td>
@@ -112,31 +113,29 @@
       <!-- ACTIONS -->
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef
-            style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
+          style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
           ACTIONS
         </th>
         <td mat-cell *matCellDef="let s" style="padding:14px 16px">
-          <button mat-icon-button (click)="openEdit(s)"
-                  style="color:#374151" matTooltip="Edit supplier">
+          <button mat-icon-button (click)="openEdit(s)" style="color:#374151" matTooltip="Edit supplier">
             <mat-icon>edit</mat-icon>
           </button>
-          <button mat-icon-button (click)="delete(s.id)"
-                  style="color:#374151" matTooltip="Delete supplier">
+          <button mat-icon-button (click)="delete(s.id)" style="color:#374151" matTooltip="Delete supplier"
+            *ngIf="isAdmin">
             <mat-icon>delete</mat-icon>
           </button>
         </td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-          style="border-bottom:1px solid #f1f5f9"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;" style="border-bottom:1px solid #f1f5f9"></tr>
 
     </table>
 
     <!-- PAGINATION -->
     <div style="display:flex; justify-content:center; align-items:center; padding:16px; gap:16px">
-      <button mat-icon-button (click)="onPageChange(currentPage - 1)"
-              [disabled]="currentPage === 1" style="color:#374151">
+      <button mat-icon-button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1"
+        style="color:#374151">
         <mat-icon>chevron_left</mat-icon>
       </button>
 
@@ -144,8 +143,8 @@
         Page {{ currentPage }} / {{ totalPages }}
       </span>
 
-      <button mat-icon-button (click)="onPageChange(currentPage + 1)"
-              [disabled]="currentPage === totalPages" style="color:#374151">
+      <button mat-icon-button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages"
+        style="color:#374151">
         <mat-icon>chevron_right</mat-icon>
       </button>
     </div>

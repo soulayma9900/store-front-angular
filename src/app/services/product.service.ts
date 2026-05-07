@@ -1,15 +1,18 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpParams,
+} from '@angular/common/http';
 import { Observable, throwError, catchError, map } from 'rxjs';
 
 import { Product } from '../models/product.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ProductService {
-
   private readonly apiUrl = `${environment.apiUrl}/products`;
 
   constructor(private http: HttpClient) {}
@@ -19,81 +22,101 @@ export class ProductService {
     page: number = 0,
     size: number = 20,
     filters?: {
-      name?: string,
-      categoryId?: string,
-      supplierId?: string
-    }
+      name?: string;
+      categoryId?: string;
+      supplierId?: string;
+    },
   ): Observable<{ content: Product[]; totalElements: number }> {
-
-    let params = new HttpParams()
-      .set('page', page)
-      .set('size', size);
+    let params = new HttpParams().set('page', page).set('size', size);
 
     if (filters?.name) params = params.set('name', filters.name);
-    if (filters?.categoryId) params = params.set('categoryId', filters.categoryId);
-    if (filters?.supplierId) params = params.set('supplierId', filters.supplierId);
+    if (filters?.categoryId)
+      params = params.set('categoryId', filters.categoryId);
+    if (filters?.supplierId)
+      params = params.set('supplierId', filters.supplierId);
 
     return this.http.get<any>(this.apiUrl, { params }).pipe(
-      map(res => ({
+      map((res) => ({
         content: res.content,
-        totalElements: res.totalElements
+        totalElements: res.totalElements,
       })),
-      catchError(this.handleError)
+      catchError(this.handleError),
     );
   }
 
   // 🟢 GET BY ID
   getProduct(id: string): Observable<Product> {
-    return this.http.get<Product>(`${this.apiUrl}/${id}`).pipe(
-      catchError(this.handleError)
-    );
+    return this.http
+      .get<Product>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
   }
 
   // 🟢 CREATE
   createProduct(product: any): Observable<Product> {
-    return this.http.post<Product>(this.apiUrl, product).pipe(
-      catchError(this.handleError)
-    );
+    return this.http
+      .post<Product>(this.apiUrl, product)
+      .pipe(catchError(this.handleError));
   }
 
   // 🟢 UPDATE
   updateProduct(id: string, product: any): Observable<Product> {
-    return this.http.put<Product>(`${this.apiUrl}/${id}`, product).pipe(
-      catchError(this.handleError)
-    );
+    return this.http
+      .put<Product>(`${this.apiUrl}/${id}`, product)
+      .pipe(catchError(this.handleError));
   }
 
   // 🟢 DELETE
   deleteProduct(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
-      catchError(this.handleError)
-    );
+    return this.http
+      .delete<void>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
   }
 
   // 🟡 STOCK ALERTS
   getLowStockAlerts(): Observable<Product[]> {
-    return this.http.get<Product[]>(`${this.apiUrl}/alerts/low-stock`).pipe(
-      catchError(this.handleError)
-    );
+    return this.http
+      .get<Product[]>(`${this.apiUrl}/alerts/low-stock`)
+      .pipe(catchError(this.handleError));
   }
 
   getReorderList(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/reorder-list`).pipe(
-      catchError(this.handleError)
-    );
+    return this.http
+      .get(`${this.apiUrl}/reorder-list`)
+      .pipe(catchError(this.handleError));
   }
 
   // 🟡 STOCK ACTIONS
   receiveStock(id: string, data: any) {
-    return this.http.post(`${this.apiUrl}/${id}/stock/receive`, data);
+    return this.http
+      .post(`${this.apiUrl}/${id}/stock/receive`, data)
+      .pipe(catchError(this.handleError));
   }
 
   wasteStock(id: string, data: any) {
-    return this.http.post(`${this.apiUrl}/${id}/stock/waste`, data);
+    return this.http
+      .post(`${this.apiUrl}/${id}/stock/waste`, data)
+      .pipe(catchError(this.handleError));
   }
 
   adjustStock(id: string, data: any) {
-    return this.http.post(`${this.apiUrl}/${id}/stock/adjust`, data);
+    return this.http
+      .post(`${this.apiUrl}/${id}/stock/adjust`, data)
+      .pipe(catchError(this.handleError));
+  }
+
+  // 🟡 STOCK READS
+  getBatches(id: string, availableOnly: boolean = true) {
+    const params = new HttpParams().set('availableOnly', String(availableOnly));
+    return this.http
+      .get<any[]>(`${this.apiUrl}/${id}/stock/batches`, { params })
+      .pipe(catchError(this.handleError));
+  }
+
+  getStockMovements(id: string, page: number = 0, size: number = 20) {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http
+      .get<any>(`${this.apiUrl}/${id}/stock/movements`, { params })
+      .pipe(catchError(this.handleError));
   }
 
   // 🔴 ERROR HANDLING
@@ -102,6 +125,7 @@ export class ProductService {
 
     if (error.status === 0) message = 'Network error';
     else if (error.status === 401) message = 'Unauthorized';
+    else if (error.status === 403) message = 'Forbidden';
     else if (error.status === 404) message = 'Not found';
     else if (error.status === 500) message = 'Server error';
     else message = `Error ${error.status}`;

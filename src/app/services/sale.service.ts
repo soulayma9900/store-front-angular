@@ -1,42 +1,46 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpParams,
+} from '@angular/common/http';
 import { Observable, throwError, map, catchError } from 'rxjs';
 import { Sale } from '../models/sale.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SaleService {
-
   private readonly apiUrl = `${environment.apiUrl}/sales`;
 
   constructor(private http: HttpClient) {}
 
-  getSales(page: number = 0, size: number = 20): Observable<{ content: Sale[]; totalElements: number }> {
-    const params = new HttpParams()
-      .set('page', page)
-      .set('size', size);
+  getSales(
+    page: number = 0,
+    size: number = 20,
+  ): Observable<{ content: Sale[]; totalElements: number }> {
+    const params = new HttpParams().set('page', page).set('size', size);
 
     return this.http.get<any>(this.apiUrl, { params }).pipe(
-      map(res => ({
-        content:       res.content       ?? [],
-        totalElements: res.totalElements ?? 0
+      map((res) => ({
+        content: res.content ?? [],
+        totalElements: res.totalElements ?? 0,
       })),
-      catchError(this.handleError)
+      catchError(this.handleError),
     );
   }
 
   createSale(sale: {
     productId: string;
-    quantity:  number;
+    quantity: number;
     unitPrice: number;
-    saleDate:  string;
-    note?:     string | null;
+    saleDate: string;
+    note?: string | null;
   }): Observable<Sale> {
-    return this.http.post<Sale>(this.apiUrl, sale).pipe(
-      catchError(this.handleError)
-    );
+    return this.http
+      .post<Sale>(this.apiUrl, sale)
+      .pipe(catchError(this.handleError));
   }
 
   // ─── ERROR HANDLER ✅ affiche le vrai message NestJS ──────
@@ -51,9 +55,11 @@ export class SaleService {
       const backendMsg = error.error?.message;
       message = Array.isArray(backendMsg)
         ? backendMsg.join(', ')
-        : backendMsg ?? 'Bad Request';
+        : (backendMsg ?? 'Bad Request');
     } else if (error.status === 401) {
       message = 'Unauthorized — check your token';
+    } else if (error.status === 403) {
+      message = 'Forbidden — admin view is read-only';
     } else if (error.status === 404) {
       message = 'Not found';
     } else if (error.status === 500) {

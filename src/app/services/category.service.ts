@@ -10,23 +10,38 @@ export class CategoryService {
   constructor(private http: HttpClient) {}
 
   getCategories(): Observable<Category[]> {
-    return this.http.get<Category[]>(this.apiUrl).pipe(catchError(this.handleError));
+    return this.http
+      .get<Category[]>(this.apiUrl)
+      .pipe(catchError(this.handleError));
   }
   getCategory(id: string): Observable<Category> {
-    return this.http.get<Category>(`${this.apiUrl}/${id}`).pipe(catchError(this.handleError));
+    return this.http
+      .get<Category>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
   }
   createCategory(category: Omit<Category, 'id'>): Observable<Category> {
-    return this.http.post<Category>(this.apiUrl, category).pipe(catchError(this.handleError));
+    return this.http
+      .post<Category>(this.apiUrl, category)
+      .pipe(catchError(this.handleError));
   }
-  updateCategory(id: string, category: Omit<Category, 'id'>): Observable<Category> {
-    return this.http.put<Category>(`${this.apiUrl}/${id}`, category).pipe(catchError(this.handleError));
+  updateCategory(
+    id: string,
+    category: Omit<Category, 'id'>,
+  ): Observable<Category> {
+    return this.http
+      .put<Category>(`${this.apiUrl}/${id}`, category)
+      .pipe(catchError(this.handleError));
   }
   deleteCategory(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(catchError(this.handleError));
+    return this.http
+      .delete<void>(`${this.apiUrl}/${id}`)
+      .pipe(catchError(this.handleError));
   }
   private handleError(error: HttpErrorResponse): Observable<never> {
     let message = 'Unknown error';
     if (error.status === 0) message = 'Network error';
+    else if (error.status === 401) message = 'Unauthorized';
+    else if (error.status === 403) message = 'Forbidden';
     else if (error.status === 404) message = 'Category not found';
     else if (error.status === 500) message = 'Server error';
     else message = `Error ${error.status}`;

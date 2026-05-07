@@ -3,16 +3,16 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SaleService } from '../../services/sale.service';
 import { ProductService } from '../../services/product.service';
+import { AuthService } from '../../services/auth.service';
 import { Sale } from '../../models/sale.model';
 import { Product } from '../../models/product.model';
 
 @Component({
   selector: 'app-sales',
   templateUrl: './sales.component.html',
-  styleUrls: ['./sales.component.css']
+  styleUrls: ['./sales.component.css'],
 })
 export class SalesComponent implements OnInit {
-
   sales: Sale[] = [];
   pagedSales: Sale[] = [];
   products: Product[] = [];
@@ -22,6 +22,8 @@ export class SalesComponent implements OnInit {
   loading = false;
   showForm = false;
   totalRevenue = 0;
+  isStaff = false;
+  isAdmin = false;
 
   form!: FormGroup;
 
@@ -32,10 +34,13 @@ export class SalesComponent implements OnInit {
     private fb: FormBuilder,
     private saleService: SaleService,
     private productService: ProductService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
+    this.isStaff = this.authService.isStaff();
+    this.isAdmin = this.authService.isAdmin();
     this.initForm();
     this.loadSales();
     this.loadProducts();
@@ -44,25 +49,29 @@ export class SalesComponent implements OnInit {
   private initForm(): void {
     this.form = this.fb.group({
       productId: ['', Validators.required],
-      quantity:  [1,  [Validators.required, Validators.min(1)]],
-      unitPrice: [0,  [Validators.required, Validators.min(0.01)]],
-      note:      [null]
+      quantity: [1, [Validators.required, Validators.min(1)]],
+      unitPrice: [0, [Validators.required, Validators.min(0.01)]],
+      note: [null],
     });
 
-    this.form.get('productId')?.valueChanges.subscribe(() => this.autoCalcUnitPrice());
-    this.form.get('quantity')?.valueChanges.subscribe(()  => this.autoCalcUnitPrice());
+    this.form
+      .get('productId')
+      ?.valueChanges.subscribe(() => this.autoCalcUnitPrice());
+    this.form
+      .get('quantity')
+      ?.valueChanges.subscribe(() => this.autoCalcUnitPrice());
   }
 
   private autoCalcUnitPrice(): void {
     const productId = this.form.get('productId')?.value;
-    const product   = this.products.find(p => p.id === productId);
+    const product = this.products.find((p) => p.id === productId);
     if (product) {
       this.form.patchValue({ unitPrice: product.price }, { emitEvent: false });
     }
   }
 
   get estimatedTotal(): number {
-    const qty   = this.form.get('quantity')?.value  ?? 0;
+    const qty = this.form.get('quantity')?.value ?? 0;
     const price = this.form.get('unitPrice')?.value ?? 0;
     return qty * price;
   }
@@ -82,10 +91,11 @@ export class SalesComponent implements OnInit {
         }
 
         this.totalRevenue = this.sales.reduce((acc, s) => {
-          const t = s.total
-                 ?? (s as any).totalPrice
-                 ?? (s as any).amount
-                 ?? ((s as any).unitPrice ? s.quantity * (s as any).unitPrice : 0);
+          const t =
+            s.total ??
+            (s as any).totalPrice ??
+            (s as any).amount ??
+            ((s as any).unitPrice ? s.quantity * (s as any).unitPrice : 0);
           return acc + t;
         }, 0);
 
@@ -96,7 +106,7 @@ export class SalesComponent implements OnInit {
       error: (err) => {
         this.snackBar.open(err.message, 'Close', { duration: 4000 });
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -104,7 +114,7 @@ export class SalesComponent implements OnInit {
     this.productService.getProducts(0, 100).subscribe({
       next: (data: any) => {
         this.products = data.content;
-      }
+      },
     });
   }
 
@@ -128,6 +138,7 @@ export class SalesComponent implements OnInit {
   // ─── FORM ACTIONS ────────────────────────────────────────
 
   openCreate(): void {
+    if (!this.isStaff) return;
     this.form.reset({ quantity: 1, unitPrice: 0 });
     this.showForm = true;
   }
@@ -142,10 +153,10 @@ export class SalesComponent implements OnInit {
 
     const payload = {
       productId: this.form.value.productId,
-      quantity:  Number(this.form.value.quantity),
+      quantity: Number(this.form.value.quantity),
       unitPrice: Number(this.form.value.unitPrice),
-      saleDate:  new Date().toISOString(),
-      note:      this.form.value.note ?? null
+      saleDate: new Date().toISOString(),
+      note: this.form.value.note ?? null,
     };
 
     this.saleService.createSale(payload).subscribe({
@@ -157,19 +168,21 @@ export class SalesComponent implements OnInit {
       },
       error: (err) => {
         this.snackBar.open(err.message, 'Close', { duration: 4000 });
-      }
+      },
     });
   }
 
   getSaleTotal(s: any): number {
-    return s.total
-        ?? s.totalPrice
-        ?? s.amount
-        ?? (s.unitPrice ? s.quantity * s.unitPrice : 0);
+    return (
+      s.total ??
+      s.totalPrice ??
+      s.amount ??
+      (s.unitPrice ? s.quantity * s.unitPrice : 0)
+    );
   }
 
   getProductName(productId: string): string {
-    const p = this.products.find(x => x.id === productId);
+    const p = this.products.find((x) => x.id === productId);
     return p ? `${p.name} — $${p.price}` : '—';
   }
 }

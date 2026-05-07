@@ -13,14 +13,21 @@
         <span>Total Revenue: <strong>${{ totalRevenue | number:'1.2-2' }}</strong></span>
       </div>
 
-      <button mat-raised-button color="primary" (click)="openCreate()">
+      <button mat-raised-button color="primary" (click)="openCreate()" *ngIf="isStaff">
         <mat-icon>add</mat-icon> New Sale
       </button>
     </div>
   </div>
 
+  <mat-card *ngIf="isAdmin" class="form-card" style="margin-bottom:20px">
+    <mat-card-content style="display:flex; align-items:center; gap:8px">
+      <mat-icon color="primary">visibility</mat-icon>
+      <span>Admin view is read-only. Staff records sales from this screen.</span>
+    </mat-card-content>
+  </mat-card>
+
   <!-- FORM -->
-  <mat-card *ngIf="showForm" class="form-card">
+  <mat-card *ngIf="showForm && isStaff" class="form-card">
     <mat-card-header>
       <mat-card-title>New Sale</mat-card-title>
     </mat-card-header>
@@ -127,23 +134,20 @@
       </div>
 
       <!-- PAGINATION -->
-      <div style="margin-top:16px; text-align:center; display:flex; justify-content:center; align-items:center; gap:4px">
+      <div
+        style="margin-top:16px; text-align:center; display:flex; justify-content:center; align-items:center; gap:4px">
 
-        <button mat-icon-button (click)="onPageChange(currentPage - 1)"
-                [disabled]="currentPage === 1">
+        <button mat-icon-button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">
           <mat-icon>chevron_left</mat-icon>
         </button>
 
-        <button mat-button
-                *ngFor="let p of [].constructor(totalPages); let i = index"
-                (click)="onPageChange(i + 1)"
-                [style.fontWeight]="currentPage === i + 1 ? '700' : '400'"
-                [style.color]="currentPage === i + 1 ? '#3b6fd4' : '#374151'">
+        <button mat-button *ngFor="let p of [].constructor(totalPages); let i = index" (click)="onPageChange(i + 1)"
+          [style.fontWeight]="currentPage === i + 1 ? '700' : '400'"
+          [style.color]="currentPage === i + 1 ? '#3b6fd4' : '#374151'">
           {{ i + 1 }}
         </button>
 
-        <button mat-icon-button (click)="onPageChange(currentPage + 1)"
-                [disabled]="currentPage === totalPages">
+        <button mat-icon-button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages">
           <mat-icon>chevron_right</mat-icon>
         </button>
 

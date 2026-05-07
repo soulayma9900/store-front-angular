@@ -47,6 +47,8 @@ export class SupplierService {
   private handleError(error: HttpErrorResponse) {
     let message = 'Unknown error';
     if (error.status === 0) message = 'Network error';
+    else if (error.status === 401) message = 'Unauthorized';
+    else if (error.status === 403) message = 'Forbidden';
     else if (error.status === 404) message = 'Not found';
     else if (error.status === 500) message = 'Server error';
     else message = `Error ${error.status}`;

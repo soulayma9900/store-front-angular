@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { AuthService } from '../../services/auth.service';
 
 import { ProductService } from '../../services/product.service';
 import { CategoryService } from '../../services/category.service';
@@ -14,10 +15,9 @@ import { Supplier } from '../../models/supplier.model';
 @Component({
   selector: 'app-products',
   templateUrl: './products.component.html',
-  styleUrls: ['./products.component.css']
+  styleUrls: ['./products.component.css'],
 })
 export class ProductsComponent implements OnInit {
-
   // ───────── DATA ─────────
   products: Product[] = [];
   pagedProducts: Product[] = [];
@@ -34,13 +34,21 @@ export class ProductsComponent implements OnInit {
 
   // ───────── UI ─────────
   displayedColumns: string[] = [
-    'id', 'name', 'barcode', 'price', 'unit',
-    'categoryId', 'primarySupplierId', 'lowStockThreshold', 'actions'
+    'id',
+    'name',
+    'barcode',
+    'price',
+    'unit',
+    'categoryId',
+    'primarySupplierId',
+    'lowStockThreshold',
+    'actions',
   ];
 
   loading = false;
   showForm = false;
   editingId: string | null = null;
+  isAdmin = false;
 
   form!: FormGroup;
 
@@ -51,10 +59,12 @@ export class ProductsComponent implements OnInit {
     private productService: ProductService,
     private categoryService: CategoryService,
     private supplierService: SupplierService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
+    this.isAdmin = this.authService.isAdmin();
     this.initForm();
     this.loadData();
   }
@@ -69,7 +79,7 @@ export class ProductsComponent implements OnInit {
       price: [0, Validators.required],
       unit: ['PIECE', Validators.required],
       lowStockThreshold: [0, Validators.required],
-      notes: ['']
+      notes: [''],
     });
   }
 
@@ -80,10 +90,9 @@ export class ProductsComponent implements OnInit {
     forkJoin({
       products: this.productService.getProducts(),
       categories: this.categoryService.getCategories(),
-      suppliers: this.supplierService.getSuppliers()
+      suppliers: this.supplierService.getSuppliers(),
     }).subscribe({
       next: ({ products, categories, suppliers }) => {
-
         this.products = products.content;
         this.categories = categories;
         this.suppliers = suppliers;
@@ -93,7 +102,7 @@ export class ProductsComponent implements OnInit {
 
         this.loading = false;
       },
-      error: () => this.loading = false
+      error: () => (this.loading = false),
     });
   }
 
@@ -136,10 +145,12 @@ export class ProductsComponent implements OnInit {
     const payload = this.form.value;
 
     if (this.editingId) {
-      this.productService.updateProduct(this.editingId, payload).subscribe(() => {
-        this.cancelForm();
-        this.loadData();
-      });
+      this.productService
+        .updateProduct(this.editingId, payload)
+        .subscribe(() => {
+          this.cancelForm();
+          this.loadData();
+        });
     } else {
       this.productService.createProduct(payload).subscribe(() => {
         this.cancelForm();
@@ -149,17 +160,20 @@ export class ProductsComponent implements OnInit {
   }
 
   delete(id: string): void {
-    this.productService.deleteProduct(id).subscribe(() => {
-      this.loadData();
+    this.productService.deleteProduct(id).subscribe({
+      next: () => this.loadData(),
+      error: (err: Error) => {
+        this.snackBar.open(err.message, 'Close', { duration: 4000 });
+      },
     });
   }
 
   // ───────── HELPERS ─────────
   getCategoryName(id: string): string {
-    return this.categories.find(c => c.id === id)?.name || '—';
+    return this.categories.find((c) => c.id === id)?.name || '—';
   }
 
   getSupplierName(id: string): string {
-    return this.suppliers.find(s => s.id === id)?.name || '—';
+    return this.suppliers.find((s) => s.id === id)?.name || '—';
   }
 }

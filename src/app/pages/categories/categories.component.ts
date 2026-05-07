@@ -3,14 +3,14 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { CategoryService } from '../../services/category.service';
 import { Category } from '../../models/category.model';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-categories',
   templateUrl: './categories.component.html',
-  styleUrls: ['./categories.component.css']
+  styleUrls: ['./categories.component.css'],
 })
 export class CategoriesComponent implements OnInit {
-
   // DATA
   categories: Category[] = [];
   pagedCategories: Category[] = [];
@@ -20,6 +20,7 @@ export class CategoriesComponent implements OnInit {
   loading = false;
   showForm = false;
   editingId: string | null = null;
+  isAdmin = false;
 
   form!: FormGroup;
 
@@ -30,10 +31,12 @@ export class CategoriesComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private categoryService: CategoryService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
+    this.isAdmin = this.authService.isAdmin();
     this.initForm();
     this.loadCategories();
   }
@@ -41,7 +44,7 @@ export class CategoriesComponent implements OnInit {
   // FORM
   private initForm(): void {
     this.form = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(2)]]
+      name: ['', [Validators.required, Validators.minLength(2)]],
     });
   }
 
@@ -72,11 +75,15 @@ export class CategoriesComponent implements OnInit {
     const payload = { name: this.form.value.name };
 
     if (this.editingId) {
-      this.categoryService.updateCategory(this.editingId, payload).subscribe(() => {
-        this.snackBar.open('Category updated ✅', 'Close', { duration: 3000 });
-        this.cancelForm();
-        this.loadCategories();
-      });
+      this.categoryService
+        .updateCategory(this.editingId, payload)
+        .subscribe(() => {
+          this.snackBar.open('Category updated ✅', 'Close', {
+            duration: 3000,
+          });
+          this.cancelForm();
+          this.loadCategories();
+        });
     } else {
       this.categoryService.createCategory(payload).subscribe(() => {
         this.snackBar.open('Category created ✅', 'Close', { duration: 3000 });
@@ -112,7 +119,7 @@ export class CategoriesComponent implements OnInit {
       error: (err: Error) => {
         this.snackBar.open(err.message, 'Close', { duration: 4000 });
         this.loading = false;
-      }
+      },
     });
   }
 

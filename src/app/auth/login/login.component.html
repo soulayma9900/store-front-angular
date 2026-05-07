@@ -16,25 +16,14 @@
       <!-- Username Field -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Username</mat-label>
-        <input
-          matInput
-          type="text"
-          name="username"
-          [(ngModel)]="username"
-          placeholder="Enter your username"
-          required />
+        <input matInput type="text" name="username" [(ngModel)]="username" placeholder="Enter your username" required />
         <mat-icon matSuffix>person</mat-icon>
       </mat-form-field>
 
       <!-- Password Field -->
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Password</mat-label>
-        <input
-          matInput
-          type="password"
-          name="password"
-          [(ngModel)]="password"
-          placeholder="Enter your password"
+        <input matInput type="password" name="password" [(ngModel)]="password" placeholder="Enter your password"
           required />
         <mat-icon matSuffix>lock</mat-icon>
       </mat-form-field>
@@ -46,18 +35,10 @@
       </div>
 
       <!-- Login Button -->
-      <button
-        mat-raised-button
-        color="primary"
-        type="submit"
-        class="login-btn"
-        [disabled]="isLoading">
+      <button mat-raised-button color="primary" type="submit" class="login-btn" [disabled]="isLoading">
 
         <!-- Loading spinner -->
-        <mat-spinner
-          *ngIf="isLoading"
-          diameter="20"
-          class="btn-spinner">
+        <mat-spinner *ngIf="isLoading" diameter="20" class="btn-spinner">
         </mat-spinner>
 
         <!-- Button text -->
@@ -73,7 +54,8 @@
     <!-- Helper hint -->
     <div class="login-hint">
       <mat-icon>info_outline</mat-icon>
-      <span>Use: <strong>admin</strong> / <strong>admin123</strong></span>
+      <span>Use: <strong>admin</strong> / <strong>admin12345</strong> or <strong>staff</strong> /
+        <strong>staff12345</strong></span>
     </div>
 
   </div>

@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { SupplierService } from '../../services/supplier.service';
 import { Supplier } from '../../models/supplier.model';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-suppliers',
@@ -10,9 +11,8 @@ import { Supplier } from '../../models/supplier.model';
   styleUrls: ['./suppliers.component.css'],
 })
 export class SuppliersComponent implements OnInit {
-
   suppliers: Supplier[] = [];
-  pagedSuppliers: Supplier[] = [];   // ⭐ NEW
+  pagedSuppliers: Supplier[] = []; // ⭐ NEW
 
   displayedColumns = ['id', 'name', 'phone', 'address', 'actions'];
 
@@ -20,6 +20,7 @@ export class SuppliersComponent implements OnInit {
   showForm = false;
   editingId: string | null = null;
   form!: FormGroup;
+  isAdmin = false;
 
   // ⭐ PAGINATION FRONT (2 per page)
   currentPage = 1;
@@ -29,9 +30,11 @@ export class SuppliersComponent implements OnInit {
     private fb: FormBuilder,
     private supplierService: SupplierService,
     private snackBar: MatSnackBar,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
+    this.isAdmin = this.authService.isAdmin();
     this.initForm();
     this.loadSuppliers();
   }
@@ -81,20 +84,26 @@ export class SuppliersComponent implements OnInit {
     if (this.editingId !== null) {
       this.supplierService.updateSupplier(this.editingId, payload).subscribe({
         next: () => {
-          this.snackBar.open('Supplier updated ✅', 'Close', { duration: 3000 });
+          this.snackBar.open('Supplier updated ✅', 'Close', {
+            duration: 3000,
+          });
           this.cancelForm();
           this.loadSuppliers();
         },
-        error: (err: Error) => this.snackBar.open(err.message, 'Close', { duration: 4000 }),
+        error: (err: Error) =>
+          this.snackBar.open(err.message, 'Close', { duration: 4000 }),
       });
     } else {
       this.supplierService.createSupplier(payload).subscribe({
         next: () => {
-          this.snackBar.open('Supplier created ✅', 'Close', { duration: 3000 });
+          this.snackBar.open('Supplier created ✅', 'Close', {
+            duration: 3000,
+          });
           this.cancelForm();
           this.loadSuppliers();
         },
-        error: (err: Error) => this.snackBar.open(err.message, 'Close', { duration: 4000 }),
+        error: (err: Error) =>
+          this.snackBar.open(err.message, 'Close', { duration: 4000 }),
       });
     }
   }
@@ -120,7 +129,7 @@ export class SuppliersComponent implements OnInit {
       next: (data: Supplier[]) => {
         this.suppliers = data;
 
-        this.currentPage = 1;   // reset page
+        this.currentPage = 1; // reset page
         this.loadPage();
 
         this.loading = false;

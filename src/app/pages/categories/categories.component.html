@@ -38,9 +38,7 @@
             Cancel
           </button>
 
-          <button mat-raised-button color="primary"
-                  type="submit"
-                  [disabled]="form.invalid">
+          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
 
             {{ editingId ? 'Update' : 'Create' }}
 
@@ -62,10 +60,7 @@
         <mat-spinner diameter="40"></mat-spinner>
       </div>
 
-      <table mat-table
-             [dataSource]="pagedCategories"
-             *ngIf="!loading"
-             class="full-width mat-elevation-z0">
+      <table mat-table [dataSource]="pagedCategories" *ngIf="!loading" class="full-width mat-elevation-z0">
 
         <!-- ID -->
         <ng-container matColumnDef="id">
@@ -88,13 +83,11 @@
           <th mat-header-cell *matHeaderCellDef>Actions</th>
           <td mat-cell *matCellDef="let c">
 
-            <button mat-icon-button color="primary"
-                    (click)="openEdit(c)">
+            <button mat-icon-button color="primary" (click)="openEdit(c)">
               <mat-icon>edit</mat-icon>
             </button>
 
-            <button mat-icon-button color="warn"
-                    (click)="delete(c.id)">
+            <button mat-icon-button color="warn" (click)="delete(c.id)" *ngIf="isAdmin">
               <mat-icon>delete</mat-icon>
             </button>
 
@@ -109,20 +102,16 @@
       <!-- PAGINATION -->
       <div class="pagination" style="margin-top:15px; text-align:center">
 
-        <button mat-button (click)="onPageChange(currentPage - 1)"
-                [disabled]="currentPage === 1">
+        <button mat-button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1">
           ◀
         </button>
 
-        <button mat-button
-                *ngFor="let p of [].constructor(totalPages); let i = index"
-                (click)="onPageChange(i + 1)"
-                [class.active]="currentPage === i + 1">
+        <button mat-button *ngFor="let p of [].constructor(totalPages); let i = index" (click)="onPageChange(i + 1)"
+          [class.active]="currentPage === i + 1">
           {{ i + 1 }}
         </button>
 
-        <button mat-button (click)="onPageChange(currentPage + 1)"
-                [disabled]="currentPage === totalPages">
+        <button mat-button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages">
           ▶
         </button>
 

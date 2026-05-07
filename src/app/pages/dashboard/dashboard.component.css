@@ -171,6 +171,72 @@
   margin-bottom: 32px;
 }
 
+/* ── Operations and Monitoring ── */
+.ops-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.ops-card {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-1) !important;
+  border: 1px solid rgba(2, 6, 23, 0.04) !important;
+  background: var(--surface) !important;
+}
+
+.ops-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.full-span {
+  grid-column: 1 / -1;
+}
+
+.ops-total {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  font-weight: 600;
+  color: #374151;
+}
+
+.helper-text {
+  margin-top: 8px;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.alert-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.alert-name {
+  font-weight: 600;
+  color: #9a3412;
+}
+
+.alert-meta {
+  font-size: 0.85rem;
+  color: #b45309;
+}
+
 .chart-card {
   border-radius: var(--radius-lg) !important;
   box-shadow: var(--shadow-1) !important;
@@ -319,6 +385,9 @@
   }
   .stat-card {
     padding: 20px;
+  }
+  .ops-form {
+    grid-template-columns: 1fr;
   }
 }
 
