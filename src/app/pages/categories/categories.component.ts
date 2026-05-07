@@ -37,6 +37,9 @@ export class CategoriesComponent implements OnInit {
 
   ngOnInit(): void {
     this.isAdmin = this.authService.isAdmin();
+    this.displayedColumns = this.isAdmin
+      ? ['id', 'name', 'actions']
+      : ['id', 'name'];
     this.initForm();
     this.loadCategories();
   }
@@ -50,6 +53,7 @@ export class CategoriesComponent implements OnInit {
 
   // CREATE
   openCreate(): void {
+    if (!this.isAdmin) return;
     this.editingId = null;
     this.form.reset();
     this.showForm = true;
@@ -57,6 +61,7 @@ export class CategoriesComponent implements OnInit {
 
   // EDIT
   openEdit(category: Category): void {
+    if (!this.isAdmin) return;
     this.editingId = category.id;
     this.form.patchValue({ name: category.name });
     this.showForm = true;

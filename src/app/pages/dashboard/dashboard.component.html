@@ -126,7 +126,7 @@
                         <mat-icon class="title-icon">bolt</mat-icon>
                         Daily Operations
                     </mat-card-title>
-                    <mat-card-subtitle>Stock receive, waste, and adjustments</mat-card-subtitle>
+                    <mat-card-subtitle>Restock and damage requests</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
                     <form [formGroup]="stockForm" (ngSubmit)="submitStockAction()" class="ops-form">
@@ -153,13 +153,13 @@
                             <input matInput type="number" formControlName="quantity" min="0.001" />
                         </mat-form-field>
 
-                        <mat-form-field appearance="outline" *ngIf="stockAction === 'receive'">
-                            <mat-label>Cost Price</mat-label>
+                        <mat-form-field appearance="outline" *ngIf="stockAction === 'restock'">
+                            <mat-label>Cost Price (optional)</mat-label>
                             <input matInput type="number" formControlName="costPrice" min="0.001" />
                             <span matPrefix>$&nbsp;</span>
                         </mat-form-field>
 
-                        <mat-form-field appearance="outline" *ngIf="stockAction === 'receive'">
+                        <mat-form-field appearance="outline" *ngIf="stockAction === 'restock'">
                             <mat-label>Supplier (optional)</mat-label>
                             <mat-select formControlName="supplierId">
                                 <mat-option value="">None</mat-option>
@@ -169,17 +169,17 @@
                             </mat-select>
                         </mat-form-field>
 
-                        <mat-form-field appearance="outline" *ngIf="stockAction === 'receive'">
+                        <mat-form-field appearance="outline" *ngIf="stockAction === 'restock'">
                             <mat-label>Lot Number</mat-label>
                             <input matInput formControlName="lotNumber" />
                         </mat-form-field>
 
-                        <mat-form-field appearance="outline" *ngIf="stockAction === 'receive'">
+                        <mat-form-field appearance="outline" *ngIf="stockAction === 'restock'">
                             <mat-label>Expiry Date</mat-label>
                             <input matInput type="date" formControlName="expiryDate" />
                         </mat-form-field>
 
-                        <mat-form-field appearance="outline" *ngIf="stockAction === 'waste'">
+                        <mat-form-field appearance="outline" *ngIf="stockAction === 'damage'">
                             <mat-label>Batch</mat-label>
                             <mat-select formControlName="batchId">
                                 <mat-option *ngFor="let b of availableBatches" [value]="b.id">
@@ -188,29 +188,12 @@
                             </mat-select>
                         </mat-form-field>
 
-                        <mat-form-field appearance="outline" *ngIf="stockAction === 'waste'">
+                        <mat-form-field appearance="outline" *ngIf="stockAction === 'damage'">
                             <mat-label>Reason</mat-label>
                             <mat-select formControlName="reason">
                                 <mat-option *ngFor="let r of wasteReasons" [value]="r">
                                     {{ r }}
                                 </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-
-                        <mat-form-field appearance="outline" *ngIf="stockAction === 'adjust'">
-                            <mat-label>Reason</mat-label>
-                            <mat-select formControlName="reason">
-                                <mat-option *ngFor="let r of adjustReasons" [value]="r">
-                                    {{ r }}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-
-                        <mat-form-field appearance="outline" *ngIf="stockAction === 'adjust'">
-                            <mat-label>Direction</mat-label>
-                            <mat-select formControlName="increase">
-                                <mat-option [value]="true">Increase</mat-option>
-                                <mat-option [value]="false">Decrease</mat-option>
                             </mat-select>
                         </mat-form-field>
 
@@ -221,13 +204,12 @@
 
                         <div class="form-actions full-span">
                             <button mat-raised-button color="primary" type="submit">
-                                {{ stockAction === 'receive' ? 'Receive Stock' : stockAction === 'waste' ? 'Record
-                                Waste' : 'Adjust Stock' }}
+                                {{ stockAction === 'restock' ? 'Send Restock Request' : 'Report Damage' }}
                             </button>
                         </div>
                     </form>
-                    <p class="helper-text" *ngIf="stockAction === 'waste' && availableBatches.length === 0">
-                        No available batches for waste on this product.
+                    <p class="helper-text" *ngIf="stockAction === 'damage' && availableBatches.length === 0">
+                        No available batches for damage reporting on this product.
                     </p>
                 </mat-card-content>
             </mat-card>
@@ -283,7 +265,7 @@
         </div>
 
         <!-- ADMIN MONITORING -->
-        <div class="ops-row" *ngIf="isAdmin">
+        <div class="ops-row" *ngIf="isAdmin || isStaff">
             <mat-card class="ops-card">
                 <mat-card-header>
                     <mat-card-title>
@@ -303,7 +285,7 @@
                 </mat-card-content>
             </mat-card>
 
-            <mat-card class="ops-card">
+            <mat-card class="ops-card" *ngIf="isAdmin">
                 <mat-card-header>
                     <mat-card-title>
                         <mat-icon class="title-icon">timeline</mat-icon>

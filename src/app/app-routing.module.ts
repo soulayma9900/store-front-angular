@@ -13,6 +13,7 @@ import { ProductsComponent } from './pages/products/products.component';
 import { SuppliersComponent } from './pages/suppliers/suppliers.component';
 import { CategoriesComponent } from './pages/categories/categories.component';
 import { SalesComponent } from './pages/sales/sales.component';
+import { RequestsComponent } from './pages/requests/requests.component';
 
 // Guard
 import { AuthGuard } from './guards/auth.guard';
@@ -36,6 +37,7 @@ const routes: Routes = [
       { path: 'suppliers', component: SuppliersComponent },
       { path: 'categories', component: CategoriesComponent },
       { path: 'sales', component: SalesComponent },
+      { path: 'requests', component: RequestsComponent },
     ],
   },
 

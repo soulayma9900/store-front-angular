@@ -4,7 +4,7 @@
     <h1 style="margin:0; font-size:2rem; font-weight:700; color:#1a1a2e">Suppliers</h1>
     <p style="margin:4px 0 0; color:#6b7280; font-size:0.9rem">Manage your suppliers</p>
   </div>
-  <button mat-stroked-button (click)="openCreate()"
+  <button mat-stroked-button (click)="openCreate()" *ngIf="isAdmin"
     style="border-radius:8px; padding:8px 20px; font-weight:500; border:1.5px solid #333; color:#1a1a2e">
     <mat-icon style="font-size:18px; vertical-align:middle; margin-right:4px">add</mat-icon>
     New Supplier
@@ -12,7 +12,7 @@
 </div>
 
 <!-- ⭐ FORMULAIRE (create / edit) -->
-<mat-card *ngIf="showForm" style="margin-bottom:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+<mat-card *ngIf="showForm && isAdmin" style="margin-bottom:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1)">
   <mat-card-title style="padding: 16px 16px 0; font-size:1.1rem">
     {{ editingId ? 'Edit Supplier' : 'New Supplier' }}
   </mat-card-title>
@@ -117,7 +117,7 @@
           ACTIONS
         </th>
         <td mat-cell *matCellDef="let s" style="padding:14px 16px">
-          <button mat-icon-button (click)="openEdit(s)" style="color:#374151" matTooltip="Edit supplier">
+          <button mat-icon-button (click)="openEdit(s)" style="color:#374151" matTooltip="Edit supplier" *ngIf="isAdmin">
             <mat-icon>edit</mat-icon>
           </button>
           <button mat-icon-button (click)="delete(s.id)" style="color:#374151" matTooltip="Delete supplier"

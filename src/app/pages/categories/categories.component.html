@@ -8,14 +8,14 @@
     </div>
 
     <!-- ⭐ ADD BUTTON (RESTORED) -->
-    <button mat-raised-button color="primary" (click)="openCreate()">
+    <button mat-raised-button color="primary" (click)="openCreate()" *ngIf="isAdmin">
       <mat-icon>add</mat-icon>
       New Category
     </button>
   </div>
 
   <!-- FORM -->
-  <mat-card class="form-card" *ngIf="showForm">
+  <mat-card class="form-card" *ngIf="showForm && isAdmin">
 
     <mat-card-header>
       <mat-card-title>
@@ -83,7 +83,7 @@
           <th mat-header-cell *matHeaderCellDef>Actions</th>
           <td mat-cell *matCellDef="let c">
 
-            <button mat-icon-button color="primary" (click)="openEdit(c)">
+            <button mat-icon-button color="primary" (click)="openEdit(c)" *ngIf="isAdmin">
               <mat-icon>edit</mat-icon>
             </button>
 

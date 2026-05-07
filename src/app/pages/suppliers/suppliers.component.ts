@@ -35,6 +35,9 @@ export class SuppliersComponent implements OnInit {
 
   ngOnInit(): void {
     this.isAdmin = this.authService.isAdmin();
+    this.displayedColumns = this.isAdmin
+      ? ['id', 'name', 'phone', 'address', 'actions']
+      : ['id', 'name', 'phone', 'address'];
     this.initForm();
     this.loadSuppliers();
   }
@@ -49,12 +52,14 @@ export class SuppliersComponent implements OnInit {
   }
 
   openCreate(): void {
+    if (!this.isAdmin) return;
     this.editingId = null;
     this.form.reset();
     this.showForm = true;
   }
 
   openEdit(s: Supplier): void {
+    if (!this.isAdmin) return;
     this.editingId = s.id;
     this.form.patchValue({
       name: s.name,

@@ -65,6 +65,28 @@ export class ProductsComponent implements OnInit {
 
   ngOnInit(): void {
     this.isAdmin = this.authService.isAdmin();
+    this.displayedColumns = this.isAdmin
+      ? [
+          'id',
+          'name',
+          'barcode',
+          'price',
+          'unit',
+          'categoryId',
+          'primarySupplierId',
+          'lowStockThreshold',
+          'actions',
+        ]
+      : [
+          'id',
+          'name',
+          'barcode',
+          'price',
+          'unit',
+          'categoryId',
+          'primarySupplierId',
+          'lowStockThreshold',
+        ];
     this.initForm();
     this.loadData();
   }
@@ -123,12 +145,14 @@ export class ProductsComponent implements OnInit {
 
   // ───────── CRUD ─────────
   openCreate(): void {
+    if (!this.isAdmin) return;
     this.editingId = null;
     this.form.reset({ unit: 'PIECE' });
     this.showForm = true;
   }
 
   openEdit(p: Product): void {
+    if (!this.isAdmin) return;
     this.editingId = p.id;
     this.form.patchValue(p);
     this.showForm = true;

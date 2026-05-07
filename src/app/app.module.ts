@@ -17,6 +17,7 @@ import { ProductsComponent } from './pages/products/products.component';
 import { CategoriesComponent } from './pages/categories/categories.component';
 import { SalesComponent } from './pages/sales/sales.component';
 import { SuppliersComponent } from './pages/suppliers/suppliers.component';
+import { RequestsComponent } from './pages/requests/requests.component';
 
 // Angular Material
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -48,6 +49,7 @@ import { PaginationComponent } from './pages/pagination/pagination.component';
     CategoriesComponent,
     SalesComponent,
     SuppliersComponent,
+    RequestsComponent,
     LoginComponent,
     PaginationComponent
   ],

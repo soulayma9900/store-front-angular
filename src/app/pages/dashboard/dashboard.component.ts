@@ -16,6 +16,7 @@ import { CategoryService } from '../../services/category.service';
 import { SaleService } from '../../services/sale.service';
 import { SupplierService } from '../../services/supplier.service';
 import { AuthService } from '../../services/auth.service';
+import { RequestService } from '../../services/request.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Product } from '../../models/product.model';
 import { Category } from '../../models/category.model';
@@ -82,13 +83,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   ];
 
   readonly stockActions = [
-    { value: 'receive', label: 'Receive Stock' },
-    { value: 'waste', label: 'Record Waste' },
-    { value: 'adjust', label: 'Adjust Stock' },
+    { value: 'restock', label: 'Restock Request' },
+    { value: 'damage', label: 'Report Damage / Expiry' },
   ];
 
   readonly wasteReasons = ['WASTE', 'SPOILAGE'];
-  readonly adjustReasons = ['ADJUSTMENT', 'SALE_CORRECTION'];
 
   isLoading = true;
   hasError = false;
@@ -109,6 +108,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     private saleService: SaleService,
     private supplierService: SupplierService,
     private authService: AuthService,
+    private requestService: RequestService,
     private fb: FormBuilder,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef,
@@ -122,7 +122,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (this.isStaff) {
       this.loadSuppliers();
     }
-    if (this.isAdmin) {
+    if (this.isAdmin || this.isStaff) {
       this.loadLowStockAlerts();
     }
   }
@@ -137,15 +137,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   private initForms(): void {
     this.stockForm = this.fb.group({
       productId: ['', Validators.required],
-      action: ['receive', Validators.required],
+      action: ['restock', Validators.required],
       quantity: [1, [Validators.required, Validators.min(0.001)]],
-      costPrice: [0, [Validators.min(0.001)]],
+      costPrice: [null, [Validators.min(0.001)]],
       supplierId: [''],
       lotNumber: [''],
       expiryDate: [''],
       batchId: [''],
-      reason: ['RECEIVE'],
-      increase: [true],
+      reason: ['WASTE'],
       note: [''],
     });
 
@@ -153,17 +152,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     this.stockForm.get('action')?.valueChanges.subscribe((action) => {
       this.setStockValidators(action);
-      if (action === 'receive') {
-        this.stockForm.patchValue({ reason: 'RECEIVE' }, { emitEvent: false });
-      }
-      if (action === 'waste') {
+      if (action === 'restock') {
         this.stockForm.patchValue({ reason: 'WASTE' }, { emitEvent: false });
       }
-      if (action === 'adjust') {
-        this.stockForm.patchValue(
-          { reason: 'ADJUSTMENT', increase: true },
-          { emitEvent: false },
-        );
+      if (action === 'damage') {
+        this.stockForm.patchValue({ reason: 'WASTE' }, { emitEvent: false });
       }
       this.loadBatchesIfNeeded();
     });
@@ -188,29 +181,22 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const costPrice = this.stockForm.get('costPrice');
     const batchId = this.stockForm.get('batchId');
     const reason = this.stockForm.get('reason');
-    const increase = this.stockForm.get('increase');
 
     costPrice?.clearValidators();
     batchId?.clearValidators();
     reason?.clearValidators();
-    increase?.clearValidators();
 
-    if (action === 'receive') {
-      costPrice?.setValidators([Validators.required, Validators.min(0.001)]);
+    if (action === 'restock') {
+      costPrice?.setValidators([Validators.min(0.001)]);
     }
-    if (action === 'waste') {
+    if (action === 'damage') {
       batchId?.setValidators([Validators.required]);
       reason?.setValidators([Validators.required]);
-    }
-    if (action === 'adjust') {
-      reason?.setValidators([Validators.required]);
-      increase?.setValidators([Validators.required]);
     }
 
     costPrice?.updateValueAndValidity();
     batchId?.updateValueAndValidity();
     reason?.updateValueAndValidity();
-    increase?.updateValueAndValidity();
   }
 
   private extractArray<T>(response: any): T[] {
@@ -383,7 +369,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const action = this.stockForm.get('action')?.value;
     const productId = this.stockForm.get('productId')?.value;
 
-    if (action !== 'waste' || !productId) {
+    if (action !== 'damage' || !productId) {
       this.availableBatches = [];
       return;
     }
@@ -424,49 +410,55 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const quantity = Number(this.stockForm.value.quantity);
     const note = (this.stockForm.value.note ?? '').trim();
 
-    let request$;
-    if (action === 'receive') {
+    if (action === 'restock') {
       const payload: any = {
+        productId,
         quantity,
-        costPrice: Number(this.stockForm.value.costPrice),
       };
+      const costPrice = this.stockForm.value.costPrice;
       const supplierId = (this.stockForm.value.supplierId ?? '').trim();
       const lotNumber = (this.stockForm.value.lotNumber ?? '').trim();
       const expiryDate = (this.stockForm.value.expiryDate ?? '').trim();
+      if (costPrice !== null && costPrice !== '') payload.costPrice = Number(costPrice);
       if (supplierId) payload.supplierId = supplierId;
       if (lotNumber) payload.lotNumber = lotNumber;
       if (expiryDate) payload.expiryDate = expiryDate;
       if (note) payload.note = note;
-      request$ = this.productService.receiveStock(productId, payload);
-    } else if (action === 'waste') {
+
+      this.requestService.createRestockRequest(payload).subscribe({
+        next: () => {
+          this.snackBar.open('Restock request sent.', 'Close', { duration: 3000 });
+          this.stockForm.patchValue({ quantity: 1, note: '' });
+          this.loadAllData();
+        },
+        error: (err: Error) => {
+          this.snackBar.open(err.message, 'Close', { duration: 4000 });
+        },
+      });
+      return;
+    }
+
+    if (action === 'damage') {
       const payload: any = {
+        productId,
         batchId: this.stockForm.value.batchId,
         quantity,
         reason: this.stockForm.value.reason,
       };
       if (note) payload.note = note;
-      request$ = this.productService.wasteStock(productId, payload);
-    } else {
-      const payload: any = {
-        quantity,
-        reason: this.stockForm.value.reason,
-        increase: Boolean(this.stockForm.value.increase),
-      };
-      if (note) payload.note = note;
-      request$ = this.productService.adjustStock(productId, payload);
-    }
 
-    request$.subscribe({
-      next: () => {
-        this.snackBar.open('Stock action saved.', 'Close', { duration: 3000 });
-        this.stockForm.patchValue({ quantity: 1, note: '' });
-        this.loadAllData();
-        this.loadBatchesIfNeeded();
-      },
-      error: (err: Error) => {
-        this.snackBar.open(err.message, 'Close', { duration: 4000 });
-      },
-    });
+      this.requestService.createDamageReport(payload).subscribe({
+        next: () => {
+          this.snackBar.open('Damage report sent.', 'Close', { duration: 3000 });
+          this.stockForm.patchValue({ quantity: 1, note: '' });
+          this.loadAllData();
+          this.loadBatchesIfNeeded();
+        },
+        error: (err: Error) => {
+          this.snackBar.open(err.message, 'Close', { duration: 4000 });
+        },
+      });
+    }
   }
 
   submitQuickSale(): void {
