@@ -122,6 +122,22 @@
           </td>
         </ng-container>
 
+        <!-- DATE -->
+        <ng-container matColumnDef="saleDate">
+          <th mat-header-cell *matHeaderCellDef>Date</th>
+          <td mat-cell *matCellDef="let s">
+            {{ getSaleDate(s) | date:'short' }}
+          </td>
+        </ng-container>
+
+        <!-- BY -->
+        <ng-container matColumnDef="performedBy">
+          <th mat-header-cell *matHeaderCellDef>By</th>
+          <td mat-cell *matCellDef="let s">
+            {{ getSaleActor(s) }}
+          </td>
+        </ng-container>
+
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
 

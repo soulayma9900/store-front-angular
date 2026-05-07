@@ -17,7 +17,14 @@ export class SalesComponent implements OnInit {
   pagedSales: Sale[] = [];
   products: Product[] = [];
 
-  displayedColumns: string[] = ['id', 'productId', 'quantity', 'total'];
+  displayedColumns: string[] = [
+    'id',
+    'productId',
+    'quantity',
+    'total',
+    'saleDate',
+    'performedBy',
+  ];
 
   loading = false;
   showForm = false;
@@ -184,5 +191,13 @@ export class SalesComponent implements OnInit {
   getProductName(productId: string): string {
     const p = this.products.find((x) => x.id === productId);
     return p ? `${p.name} — $${p.price}` : '—';
+  }
+
+  getSaleDate(s: Sale): string | null {
+    return s.saleDate ?? s.createdAt ?? null;
+  }
+
+  getSaleActor(s: Sale): string {
+    return s.performedBy ?? '—';
   }
 }
