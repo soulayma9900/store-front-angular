@@ -1,101 +1,154 @@
-<div class="page-container">
-
-  <div class="page-header">
-    <div>
-      <h2>Suppliers</h2>
-      <span class="subtitle">Manage suppliers</span>
-    </div>
-    <button mat-raised-button color="primary" (click)="openCreate()">
-      <mat-icon>add</mat-icon> New Supplier
-    </button>
+<!-- ⭐ HEADER : titre + bouton Add Supplier (style Products page) -->
+<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; padding: 0 8px">
+  <div>
+    <h1 style="margin:0; font-size:2rem; font-weight:700; color:#1a1a2e">Suppliers</h1>
+    <p style="margin:4px 0 0; color:#6b7280; font-size:0.9rem">Manage your suppliers</p>
   </div>
+  <button mat-stroked-button (click)="openCreate()"
+          style="border-radius:8px; padding:8px 20px; font-weight:500; border:1.5px solid #333; color:#1a1a2e">
+    <mat-icon style="font-size:18px; vertical-align:middle; margin-right:4px">add</mat-icon>
+    New Supplier
+  </button>
+</div>
 
-  <mat-card class="form-card" *ngIf="showForm">
-    <mat-card-header>
-      <mat-card-title>{{ editingId ? 'Edit Supplier' : 'Create Supplier' }}</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+<!-- ⭐ FORMULAIRE (create / edit) -->
+<mat-card *ngIf="showForm" style="margin-bottom:20px; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+  <mat-card-title style="padding: 16px 16px 0; font-size:1.1rem">
+    {{ editingId ? 'Edit Supplier' : 'New Supplier' }}
+  </mat-card-title>
+  <mat-card-content style="padding:16px">
+    <form [formGroup]="form" (ngSubmit)="submit()">
 
-        <mat-form-field appearance="outline">
-          <mat-label>Name</mat-label>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
+
+        <mat-form-field appearance="outline" style="width:100%">
+          <mat-label>Name *</mat-label>
           <input matInput formControlName="name" />
           <mat-error *ngIf="form.get('name')?.hasError('required')">Name is required</mat-error>
+          <mat-error *ngIf="form.get('name')?.hasError('minlength')">Min 2 characters</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" style="width:100%">
           <mat-label>Phone</mat-label>
           <input matInput formControlName="phone" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" style="width:100%">
           <mat-label>Address</mat-label>
           <input matInput formControlName="address" />
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-col">
+        <mat-form-field appearance="outline" style="width:100%">
           <mat-label>Notes</mat-label>
-          <textarea matInput rows="3" formControlName="notes"></textarea>
+          <textarea matInput formControlName="notes" rows="1"></textarea>
         </mat-form-field>
 
-        <div class="form-actions full-col">
-          <button mat-stroked-button type="button" (click)="cancelForm()">Cancel</button>
-          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">{{ editingId ? 'Update' :
-            'Create' }}</button>
-        </div>
-
-      </form>
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card class="table-card">
-    <mat-card-content>
-      <div *ngIf="loading" class="loading-center">
-        <mat-spinner diameter="40"></mat-spinner>
       </div>
 
-      <table mat-table [dataSource]="suppliers" class="full-width mat-elevation-z0" *ngIf="!loading">
+      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px">
+        <button mat-button type="button" (click)="cancelForm()">Cancel</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+          {{ editingId ? 'Update' : 'Create' }}
+        </button>
+      </div>
 
-        <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef>ID</th>
-          <td mat-cell *matCellDef="let s"><span class="id-badge">{{ s.id }}</span></td>
-        </ng-container>
+    </form>
+  </mat-card-content>
+</mat-card>
 
-        <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
-          <td mat-cell *matCellDef="let s"><strong>{{ s.name }}</strong></td>
-        </ng-container>
+<!-- TABLE -->
+<mat-card style="border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08)">
+  <mat-card-content style="padding:0">
 
-        <ng-container matColumnDef="phone">
-          <th mat-header-cell *matHeaderCellDef>Phone</th>
-          <td mat-cell *matCellDef="let s">{{ s.phone }}</td>
-        </ng-container>
+    <div *ngIf="loading" style="display:flex; justify-content:center; padding:40px">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
 
-        <ng-container matColumnDef="address">
-          <th mat-header-cell *matHeaderCellDef>Address</th>
-          <td mat-cell *matCellDef="let s">{{ s.address }}</td>
-        </ng-container>
+    <table mat-table [dataSource]="pagedSuppliers" class="full-width mat-elevation-z0" *ngIf="!loading"
+           style="border-radius:12px; overflow:hidden">
 
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
-          <td mat-cell *matCellDef="let s">
-            <button mat-icon-button color="primary" (click)="openEdit(s)"><mat-icon>edit</mat-icon></button>
-            <button mat-icon-button color="warn" (click)="delete(s.id)"><mat-icon>delete</mat-icon></button>
-          </td>
-        </ng-container>
+      <!-- ID -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef
+            style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
+          ID
+        </th>
+        <td mat-cell *matCellDef="let s" style="padding:14px 16px">
+          <span style="background:#e2e8f0; color:#475569; font-size:0.75rem; padding:3px 8px; border-radius:6px; font-family:monospace">
+            {{ s.id }}
+          </span>
+        </td>
+      </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
+      <!-- NAME -->
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef
+            style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
+          NAME
+        </th>
+        <td mat-cell *matCellDef="let s" style="padding:14px 16px">
+          <strong>{{ s.name }}</strong>
+        </td>
+      </ng-container>
 
-        <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell empty-state" colspan="5">
-            <mat-icon>people</mat-icon>
-            <span>No suppliers found</span>
-          </td>
-        </tr>
+      <!-- PHONE -->
+      <ng-container matColumnDef="phone">
+        <th mat-header-cell *matHeaderCellDef
+            style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
+          PHONE
+        </th>
+        <td mat-cell *matCellDef="let s" style="padding:14px 16px">{{ s.phone }}</td>
+      </ng-container>
 
-      </table>
-    </mat-card-content>
-  </mat-card>
+      <!-- ADDRESS -->
+      <ng-container matColumnDef="address">
+        <th mat-header-cell *matHeaderCellDef
+            style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
+          ADDRESS
+        </th>
+        <td mat-cell *matCellDef="let s" style="padding:14px 16px">{{ s.address }}</td>
+      </ng-container>
 
-</div>
+      <!-- ACTIONS -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef
+            style="background:#f1f5f9; color:#64748b; font-weight:600; font-size:0.75rem; letter-spacing:0.05em; padding:14px 16px">
+          ACTIONS
+        </th>
+        <td mat-cell *matCellDef="let s" style="padding:14px 16px">
+          <button mat-icon-button (click)="openEdit(s)"
+                  style="color:#374151" matTooltip="Edit supplier">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button (click)="delete(s.id)"
+                  style="color:#374151" matTooltip="Delete supplier">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+          style="border-bottom:1px solid #f1f5f9"></tr>
+
+    </table>
+
+    <!-- PAGINATION -->
+    <div style="display:flex; justify-content:center; align-items:center; padding:16px; gap:16px">
+      <button mat-icon-button (click)="onPageChange(currentPage - 1)"
+              [disabled]="currentPage === 1" style="color:#374151">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+
+      <span style="color:#374151; font-size:0.9rem">
+        Page {{ currentPage }} / {{ totalPages }}
+      </span>
+
+      <button mat-icon-button (click)="onPageChange(currentPage + 1)"
+              [disabled]="currentPage === totalPages" style="color:#374151">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    </div>
+
+  </mat-card-content>
+</mat-card>

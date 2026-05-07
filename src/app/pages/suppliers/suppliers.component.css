@@ -1,12 +1,16 @@
-.page-container { padding: 0; }
-.page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
-.subtitle { color: var(--muted); }
-.form-card, .table-card { border-radius: var(--radius-lg) !important; box-shadow: var(--shadow-1) !important; border: 1px solid rgba(2,6,23,0.04) !important; background: var(--surface) !important; }
-.form-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-.full-col { grid-column: 1 / -1; }
-.form-actions { display:flex; gap:12px; justify-content:flex-end; padding-top:6px; }
-.loading-center { display:flex; align-items:center; justify-content:center; padding:48px; }
-.id-badge { background: linear-gradient(135deg, var(--bg-100), var(--bg-200)); color:#475569; padding:6px 12px; border-radius:20px; font-weight:700; font-size:0.75rem; }
-.table-row { transition: background 0.18s ease; border-bottom: 1px solid rgba(2,6,23,0.04) !important; }
-.table-row:hover { background: linear-gradient(90deg, var(--bg-100), var(--bg-200)) !important; }
-.mono-text { font-family: 'Courier New', monospace; font-size:0.82rem; color:#475569; }
+:host {
+  display: block;
+  padding: 32px;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.full-width {
+  width: 100%;
+}
+
+/* Row hover effect */
+tr.mat-row:hover {
+  background: #f8fafc;
+  transition: background 0.15s ease;
+}

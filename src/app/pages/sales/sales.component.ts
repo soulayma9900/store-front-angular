@@ -14,17 +14,19 @@ import { Product } from '../../models/product.model';
 export class SalesComponent implements OnInit {
 
   sales: Sale[] = [];
+  pagedSales: Sale[] = [];
   products: Product[] = [];
+
   displayedColumns: string[] = ['id', 'productId', 'quantity', 'total'];
+
   loading = false;
   showForm = false;
-
-  page = 0;
-  size = 20;
-  totalElements = 0;
   totalRevenue = 0;
 
   form!: FormGroup;
+
+  currentPage = 1;
+  pageSize = 3;
 
   constructor(
     private fb: FormBuilder,
@@ -43,32 +45,90 @@ export class SalesComponent implements OnInit {
     this.form = this.fb.group({
       productId: ['', Validators.required],
       quantity:  [1,  [Validators.required, Validators.min(1)]],
-      unitPrice: [0,  [Validators.required, Validators.min(0.01)]], // ✅ était "total"
+      unitPrice: [0,  [Validators.required, Validators.min(0.01)]],
       note:      [null]
     });
 
     this.form.get('productId')?.valueChanges.subscribe(() => this.autoCalcUnitPrice());
-    this.form.get('quantity')?.valueChanges.subscribe(() => this.autoCalcUnitPrice());
+    this.form.get('quantity')?.valueChanges.subscribe(()  => this.autoCalcUnitPrice());
   }
 
-  // ✅ unitPrice = prix du produit (le backend calcule total = unitPrice × quantity)
   private autoCalcUnitPrice(): void {
-    const productId = this.form.get('productId')?.value as string;
+    const productId = this.form.get('productId')?.value;
     const product   = this.products.find(p => p.id === productId);
     if (product) {
       this.form.patchValue({ unitPrice: product.price }, { emitEvent: false });
     }
   }
 
-  // Pour afficher le total estimé dans le HTML (lecture seule)
   get estimatedTotal(): number {
-    const qty   = this.form.get('quantity')?.value  as number ?? 0;
-    const price = this.form.get('unitPrice')?.value as number ?? 0;
+    const qty   = this.form.get('quantity')?.value  ?? 0;
+    const price = this.form.get('unitPrice')?.value ?? 0;
     return qty * price;
   }
 
+  // ─── LOAD ────────────────────────────────────────────────
+
+  loadSales(): void {
+    this.loading = true;
+
+    this.saleService.getSales(0, 1000).subscribe({
+      next: (data) => {
+        this.sales = data.content;
+
+        // ✅ log temporaire — voir le vrai champ retourné par le backend
+        if (this.sales.length) {
+          console.log('Sale object from API:', JSON.stringify(this.sales[0]));
+        }
+
+        this.totalRevenue = this.sales.reduce((acc, s) => {
+          const t = s.total
+                 ?? (s as any).totalPrice
+                 ?? (s as any).amount
+                 ?? ((s as any).unitPrice ? s.quantity * (s as any).unitPrice : 0);
+          return acc + t;
+        }, 0);
+
+        this.currentPage = 1;
+        this.loadPage();
+        this.loading = false;
+      },
+      error: (err) => {
+        this.snackBar.open(err.message, 'Close', { duration: 4000 });
+        this.loading = false;
+      }
+    });
+  }
+
+  loadProducts(): void {
+    this.productService.getProducts(0, 100).subscribe({
+      next: (data: any) => {
+        this.products = data.content;
+      }
+    });
+  }
+
+  // ─── PAGINATION ──────────────────────────────────────────
+
+  loadPage(): void {
+    const start = (this.currentPage - 1) * this.pageSize;
+    this.pagedSales = this.sales.slice(start, start + this.pageSize);
+  }
+
+  onPageChange(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.loadPage();
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.sales.length / this.pageSize);
+  }
+
+  // ─── FORM ACTIONS ────────────────────────────────────────
+
   openCreate(): void {
-    this.form.reset({ quantity: 1, unitPrice: 0, note: null });
+    this.form.reset({ quantity: 1, unitPrice: 0 });
     this.showForm = true;
   }
 
@@ -80,54 +140,36 @@ export class SalesComponent implements OnInit {
   submit(): void {
     if (this.form.invalid) return;
 
-    // ✅ Payload exactement ce que le backend attend
     const payload = {
-      productId: this.form.value.productId as string,
+      productId: this.form.value.productId,
       quantity:  Number(this.form.value.quantity),
       unitPrice: Number(this.form.value.unitPrice),
-      saleDate:  new Date().toISOString(),          // ✅ ajouté
+      saleDate:  new Date().toISOString(),
       note:      this.form.value.note ?? null
     };
 
-    console.log('Payload envoyé:', payload); // supprime après test
-
     this.saleService.createSale(payload).subscribe({
-      next: () => {
+      next: (created) => {
+        console.log('Created sale:', JSON.stringify(created)); // ✅ voir le total retourné
         this.snackBar.open('Sale created ✅', 'Close', { duration: 3000 });
         this.cancelForm();
         this.loadSales();
       },
-      error: (err: Error) => this.snackBar.open(err.message, 'Close', { duration: 4000 })
-    });
-  }
-
-  loadSales(): void {
-    this.loading = true;
-    this.saleService.getSales(this.page, this.size).subscribe({
-      next: (data: { content: Sale[]; totalElements: number }) => {
-        this.sales         = data.content;
-        this.totalElements = data.totalElements;
-        this.totalRevenue  = this.sales.reduce((acc, s) => acc + (s.total ?? 0), 0);
-        this.loading       = false;
-      },
-      error: (err: Error) => {
+      error: (err) => {
         this.snackBar.open(err.message, 'Close', { duration: 4000 });
-        this.loading = false;
       }
     });
   }
 
-  loadProducts(): void {
-    this.productService.getProducts(0, 100).subscribe({
-      next: (data: { content: Product[]; totalElements: number }) => {
-        this.products = data.content;
-      },
-      error: (err: Error) => this.snackBar.open(err.message, 'Close', { duration: 4000 })
-    });
+  getSaleTotal(s: any): number {
+    return s.total
+        ?? s.totalPrice
+        ?? s.amount
+        ?? (s.unitPrice ? s.quantity * s.unitPrice : 0);
   }
 
   getProductName(productId: string): string {
-    const product = this.products.find(p => p.id === productId);
-    return product ? `${product.name} — $${product.price}` : '—';
+    const p = this.products.find(x => x.id === productId);
+    return p ? `${p.name} — $${p.price}` : '—';
   }
 }

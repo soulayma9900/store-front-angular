@@ -37,6 +37,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { LoginComponent } from './auth/login/login.component';
+import { PaginationComponent } from './pages/pagination/pagination.component';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,8 @@ import { LoginComponent } from './auth/login/login.component';
     CategoriesComponent,
     SalesComponent,
     SuppliersComponent,
-    LoginComponent
+    LoginComponent,
+    PaginationComponent
   ],
   imports: [
     BrowserModule,
@@ -56,6 +58,7 @@ import { LoginComponent } from './auth/login/login.component';
       FormsModule,           // ⭐ for ngModel
     ReactiveFormsModule,
     ReactiveFormsModule,
+    MatPaginatorModule,
     AppRoutingModule,
     MatSidenavModule,
     MatToolbarModule,

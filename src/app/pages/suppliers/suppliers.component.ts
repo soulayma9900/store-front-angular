@@ -10,12 +10,20 @@ import { Supplier } from '../../models/supplier.model';
   styleUrls: ['./suppliers.component.css'],
 })
 export class SuppliersComponent implements OnInit {
+
   suppliers: Supplier[] = [];
+  pagedSuppliers: Supplier[] = [];   // ⭐ NEW
+
   displayedColumns = ['id', 'name', 'phone', 'address', 'actions'];
+
   loading = false;
   showForm = false;
   editingId: string | null = null;
   form!: FormGroup;
+
+  // ⭐ PAGINATION FRONT (2 per page)
+  currentPage = 1;
+  pageSize = 2;
 
   constructor(
     private fb: FormBuilder,
@@ -62,25 +70,25 @@ export class SuppliersComponent implements OnInit {
 
   submit(): void {
     if (this.form.invalid) return;
+
     const raw = this.form.value;
-    const payload: any = { name: raw.name as string };
+    const payload: any = { name: raw.name };
+
     if (raw.phone) payload.phone = raw.phone;
     if (raw.address) payload.address = raw.address;
     if (raw.notes) payload.notes = raw.notes;
 
     if (this.editingId !== null) {
-      this.supplierService
-        .updateSupplier(this.editingId, payload as Omit<Supplier, 'id'>)
-        .subscribe({
-          next: () => {
-            this.snackBar.open('Supplier updated ✅', 'Close', { duration: 3000 });
-            this.cancelForm();
-            this.loadSuppliers();
-          },
-          error: (err: Error) => this.snackBar.open(err.message, 'Close', { duration: 4000 }),
-        });
+      this.supplierService.updateSupplier(this.editingId, payload).subscribe({
+        next: () => {
+          this.snackBar.open('Supplier updated ✅', 'Close', { duration: 3000 });
+          this.cancelForm();
+          this.loadSuppliers();
+        },
+        error: (err: Error) => this.snackBar.open(err.message, 'Close', { duration: 4000 }),
+      });
     } else {
-      this.supplierService.createSupplier(payload as Omit<Supplier, 'id'>).subscribe({
+      this.supplierService.createSupplier(payload).subscribe({
         next: () => {
           this.snackBar.open('Supplier created ✅', 'Close', { duration: 3000 });
           this.cancelForm();
@@ -93,6 +101,7 @@ export class SuppliersComponent implements OnInit {
 
   delete(id: string): void {
     if (!confirm('Delete this supplier?')) return;
+
     this.supplierService.deleteSupplier(id).subscribe({
       next: () => {
         this.snackBar.open('Supplier deleted 🗑️', 'Close', { duration: 3000 });
@@ -103,11 +112,17 @@ export class SuppliersComponent implements OnInit {
     });
   }
 
+  // ⭐ LOAD + PAGINATION
   loadSuppliers(): void {
     this.loading = true;
+
     this.supplierService.getSuppliers().subscribe({
       next: (data: Supplier[]) => {
         this.suppliers = data;
+
+        this.currentPage = 1;   // reset page
+        this.loadPage();
+
         this.loading = false;
       },
       error: (err: Error) => {
@@ -115,5 +130,24 @@ export class SuppliersComponent implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  // ⭐ pagination logic
+  loadPage(): void {
+    const start = (this.currentPage - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    this.pagedSuppliers = this.suppliers.slice(start, end);
+  }
+
+  onPageChange(page: number): void {
+    if (page < 1) return;
+    if (page > this.totalPages) return;
+
+    this.currentPage = page;
+    this.loadPage();
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.suppliers.length / this.pageSize);
   }
 }
